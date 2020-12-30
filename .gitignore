@@ -139,6 +139,8 @@ dmypy.json
 *.mp4
 *.pth 
 *.zip
+*.weights
+*.pt
 
 #data folders
 input
