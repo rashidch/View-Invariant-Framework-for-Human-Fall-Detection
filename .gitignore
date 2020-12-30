@@ -140,8 +140,11 @@ dmypy.json
 *.pth 
 *.zip
 <<<<<<< HEAD
+<<<<<<< HEAD
 *.weights
 *.pt
+=======
+>>>>>>> e53bff4bc58c5c6f0e15a9b2c4e5cfac5c0d7ff6
 =======
 >>>>>>> e53bff4bc58c5c6f0e15a9b2c4e5cfac5c0d7ff6
 
