@@ -74,6 +74,9 @@ docs/_build/
 # PyBuilder
 target/
 
+#vscode
+**/.vscode
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
@@ -127,3 +130,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+#ignore media files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.avi
+*.mp4
+*.pth 
+*.zip
+
+#data folders
+input
+outputs
+frames_output
+
