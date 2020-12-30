@@ -11,8 +11,8 @@ try:
     from util import count_parameters as count
     from util import convert2cpu as cpu
 except ImportError:
-    from yolo.util import count_parameters as count
-    from yolo.util import convert2cpu as cpu
+    from source.detector.yolo.util import count_parameters as count
+    from source.detector.yolo.util import convert2cpu as cpu
 from PIL import Image, ImageDraw
 
 

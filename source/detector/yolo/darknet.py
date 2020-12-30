@@ -8,13 +8,13 @@ import numpy as np
 import cv2 
 import matplotlib.pyplot as plt
 try:
-    from util import count_parameters as count
-    from util import convert2cpu as cpu
-    from util import predict_transform
+    from source.detector.yolo.util import count_parameters as count
+    from source.detector.yolo.util import convert2cpu as cpu
+    from source.detector.yolo.util import predict_transform
 except ImportError:
-    from yolo.util import count_parameters as count
-    from yolo.util import convert2cpu as cpu
-    from yolo.util import predict_transform
+    from source.detector.yolo.util import count_parameters as count
+    from source.detector.yolo.util import convert2cpu as cpu
+    from source.detector.yolo.util import predict_transform
 
 class test_net(nn.Module):
     def __init__(self, num_layers, input_size):
@@ -47,6 +47,7 @@ def parse_cfg(cfgfile):
     network to be built. Block is represented as a dictionary in the list
     
     """
+    print('in parse_cfg', cfgfile)
     file = open(cfgfile, 'r')
     lines = file.read().split('\n')     #store the lines in a list
     lines = [x for x in lines if len(x) > 0] #get read of the empty lines 

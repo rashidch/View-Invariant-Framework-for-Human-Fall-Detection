@@ -266,6 +266,7 @@ class SingleImageAlphaPose():
 
     def process(self, im_name, image):
         # Init data writer
+        
         self.writer = DataWriter(self.cfg, self.args)
 
         runtime_profile = {

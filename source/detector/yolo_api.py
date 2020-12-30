@@ -33,8 +33,8 @@ class YOLODetector(BaseDetector):
 
         self.detector_cfg = cfg
         self.detector_opt = opt
-        self.model_cfg = cfg.get('CONFIG', 'detector/yolo/cfg/yolov3-spp.cfg')
-        self.model_weights = cfg.get('WEIGHTS', 'detector/yolo/data/yolov3-spp.weights')
+        self.model_cfg = cfg.get('CONFIG', 'source/detector/yolo/cfg/yolov3-spp.cfg')
+        self.model_weights = cfg.get('WEIGHTS', 'source/detector/yolo/data/yolov3-spp.weights')
         self.inp_dim = cfg.get('INP_DIM', 608)
         self.nms_thres = cfg.get('NMS_THRES', 0.6)
         self.confidence = 0.3 if (False if not hasattr(opt, 'tracking') else opt.tracking) else cfg.get('CONFIDENCE', 0.05)
@@ -45,10 +45,15 @@ class YOLODetector(BaseDetector):
         args = self.detector_opt
 
         print('Loading YOLO model..')
-        self.model = Darknet(self.model_cfg)
-        self.model.load_weights(self.model_weights)
-        self.model.net_info['height'] = self.inp_dim
-        
+        try:
+            print('self.model_cfg',self.model_cfg)
+            print('self.model_weights', self.model_weights)
+            self.model = Darknet(self.model_cfg)
+            self.model.load_weights(self.model_weights)
+            self.model.net_info['height'] = self.inp_dim
+        except Exception:
+            print('Model not loaded')
+    
 
         if args:
             if len(args.gpus) > 1:
@@ -65,7 +70,7 @@ class YOLODetector(BaseDetector):
         Input: image name(str) or raw image data(ndarray or torch.Tensor,channel GBR)
         Output: pre-processed image data(torch.FloatTensor,(1,3,h,w))
         """
-        #print('img_source', img_source)
+        print('img_source', img_source)
         if isinstance(img_source, str):
             img, orig_img, im_dim_list = prep_image(img_source, self.inp_dim)
         elif isinstance(img_source, torch.Tensor) or isinstance(img_source, np.ndarray):

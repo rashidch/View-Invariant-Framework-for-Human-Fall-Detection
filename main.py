@@ -14,10 +14,11 @@ from demo.camera import CamLoader
 
 """----------------------------- Demo options -----------------------------"""
 parser = argparse.ArgumentParser(description='AlphaPose Single-Image Demo')
-parser.add_argument('--cfg', type=str, required=True, 
-default='source/configs/coco/resnet/256x192_res50_lr-3_1x.yaml',
+parser.add_argument('--cfg', type=str, required=False, 
+                    default='source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml',
                     help='experiment configure file name')
-parser.add_argument('--checkpoint', type=str, required=True,
+parser.add_argument('--checkpoint', type=str, required=False, 
+                    default='source/pretrained_models/fast_res50_256x192.pth',
                     help='checkpoint file name')
 parser.add_argument('--detector', dest='detector',
                     help='detector name', default="yolo")
@@ -48,7 +49,7 @@ parser.add_argument('--vis_fast', dest='vis_fast',
 parser.add_argument('--save_out', type=str, default='./outputs/1.avi',
                         help='Save display to video file.')
 parser.add_argument('--cam', dest='inputvideo', help='video-name', 
-                    default='/examples/demo/1.mp4') 
+                    default='examples/demo/1.mp4') 
 """----------------------------- Tracking options -----------------------------"""
 parser.add_argument('--pose_flow', dest='pose_flow',
                     help='track humans in video with PoseFlow', action='store_true', default=False)
@@ -112,7 +113,7 @@ def predict_frame():
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = ResizePadding(frame,576,720)  
         image = frame.copy()
-       
+        print('in while')
         pose = demo.process(im_name, image)    
         if pose is not None:
             frame = demo.vis(frame, pose)   # visulize the pose result
