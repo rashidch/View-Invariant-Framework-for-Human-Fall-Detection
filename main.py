@@ -113,7 +113,6 @@ def predict_frame():
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = ResizePadding(frame,576,720)  
         image = frame.copy()
-        print('in while')
         pose = demo.process(im_name, image)    
         if pose is not None:
             frame = demo.vis(frame, pose)   # visulize the pose result
@@ -128,12 +127,12 @@ def predict_frame():
         with torch.no_grad():
             pose_predictor.load_model()
             human = pose['result'][0]
-            #print(human)
+            
             actres = pose_predictor.predict_action(human['keypoints'])
             actres = actres.cpu().numpy().reshape(-1)
             predictions = np.argmax(actres)
             confidence = round(actres[predictions],3)
-            print(confidence)
+                   
             action_name = tagI2W[predictions]
 
             if action_name=='Fall' and confidence>0.9:

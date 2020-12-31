@@ -23,52 +23,8 @@ from alphapose.models import builder
 from alphapose.utils.config import update_config
 from detector.apis import get_detector
 from alphapose.utils.vis import getTime
-'''
-"""----------------------------- Demo options -----------------------------"""
-parser = argparse.ArgumentParser(description='AlphaPose Single-Image Demo')
-parser.add_argument('--cfg', type=str, required=True,
-                    help='experiment configure file name')
-parser.add_argument('--checkpoint', type=str, required=True,
-                    help='checkpoint file name')
-parser.add_argument('--detector', dest='detector',
-                    help='detector name', default="yolo")
-parser.add_argument('--image', dest='inputimg',
-                    help='image-name', default="")
-parser.add_argument('--save_img', default=True, action='store_true',
-                    help='save result as image')
-parser.add_argument('--vis', default=True, action='store_true',
-                    help='visualize image')
-parser.add_argument('--showbox', default=True, action='store_true',
-                    help='visualize human bbox')
-parser.add_argument('--profile', default=True, action='store_true',
-                    help='add speed profiling at screen output')
-parser.add_argument('--format', type=str,
-                    help='save in the format of cmu or coco or openpose, option: coco/cmu/open')
-parser.add_argument('--min_box_area', type=int, default=0,
-                    help='min box area to filter out')
-parser.add_argument('--eval', dest='eval', default=False, action='store_true',
-                    help='save the result json as coco format, using image index(int) instead of image name(str)')
-parser.add_argument('--gpus', type=str, dest='gpus', default="0",
-                    help='choose which cuda device to use by index and input comma to use multi gpus, e.g. 0,1,2,3. (input -1 for cpu only)')
-parser.add_argument('--flip', default=False, action='store_true',
-                    help='enable flip testing')
-parser.add_argument('--debug', default=False, action='store_true',
-                    help='print detail information')
-parser.add_argument('--vis_fast', dest='vis_fast',
-                    help='use fast rendering', action='store_true', default=False)
-"""----------------------------- Tracking options -----------------------------"""
-parser.add_argument('--pose_flow', dest='pose_flow',
-                    help='track humans in video with PoseFlow', action='store_true', default=False)
-parser.add_argument('--pose_track', dest='pose_track',
-                    help='track humans in video with reid', action='store_true', default=False)
 
-args = parser.parse_args()
-cfg = update_config(args.cfg)
 
-args.gpus = [int(args.gpus[0])] if torch.cuda.device_count() >= 1 else [-1]
-args.device = torch.device("cuda:" + str(args.gpus[0]) if args.gpus[0] >= 0 else "cpu")
-args.tracking = args.pose_track or args.pose_flow or args.detector=='tracker'
-'''
 class DetectionLoader():
     def __init__(self, detector, cfg, opt):
         self.cfg = cfg
@@ -215,25 +171,36 @@ class DataWriter():
 
             boxes, scores, ids, preds_img, preds_scores, pick_ids = \
                 pose_nms(boxes, scores, ids, preds_img, preds_scores, self.opt.min_box_area)
-
+            
+            max_score = 0
+            idx_max = 0
+            for k, score in enumerate(scores):
+                if scores[k]>max_score:
+                    max_score = scores[k]
+                    idx_max   = k
+            print('idxmax: {}, max score: {}'.format(idx_max, max_score))
+            
             _result = []
-            for k in range(len(scores)):
-                _result.append(
-                    {
-                        'keypoints':preds_img[k],
-                        'kp_score':preds_scores[k],
-                        'proposal_score': torch.mean(preds_scores[k]) + scores[k] + 1.25 * max(preds_scores[k]),
-                        'idx':ids[k],
-                        'bbox':[boxes[k][0], boxes[k][1], boxes[k][2]-boxes[k][0],boxes[k][3]-boxes[k][1]] 
-                    }
-                )
-
+            k = idx_max
+            #for k, score in enumerate(scores):
+            #print('box score',score)
+            #print('kp score', preds_scores[k])
+            _result.append(
+                {
+                    'keypoints':preds_img[k],
+                    'kp_score':preds_scores[k],
+                    'proposal_score': torch.mean(preds_scores[k]) + scores[k] + 1.25 * max(preds_scores[k]),
+                    'idx':ids[k],
+                    'bbox':[boxes[k][0], boxes[k][1], boxes[k][2]-boxes[k][0],boxes[k][3]-boxes[k][1]] 
+                }
+            )
+            
             result = {
                 'imgname': im_name,
                 'result': _result,
                 'pose_class':None
             }
-
+            
             if hm_data.size()[1] == 49:
                 from alphapose.utils.vis import vis_frame_dense as vis_frame
             elif self.opt.vis_fast:
@@ -337,7 +304,7 @@ class SingleImageAlphaPose():
         if pose is not None:
             image = self.writer.vis_frame(image, pose, self.writer.opt)
         return image
-
+'''
     def writeJson(self, final_result, outputpath, form='coco', for_eval=False):
         from alphapose.utils.pPose_nms import write_json
         pose_tuple = write_json(final_result, outputpath, form=form, for_eval=for_eval)
@@ -364,8 +331,9 @@ def example():
     # cv2.waitKey(30)
 
     # write the result to json:
-    result = [pose]
-    demo.writeJson(result, outputpath, form=args.format, for_eval=args.eval)
+    #result = [pose]
+    #demo.writeJson(result, outputpath, form=args.format, for_eval=args.eval)
 
 if __name__ == "__main__":
     example()
+'''

@@ -46,8 +46,8 @@ DETECTOR:
   NAME: 'yolo'
   CONFIG: 'source/detector/yolo/cfg/yolov3-spp.cfg'
   WEIGHTS: 'source/detector/yolo/data/yolov3-spp.weights'
-  NMS_THRES: 0.45
-  CONFIDENCE: 0.5
+  NMS_THRES: 0.40
+  CONFIDENCE: 0.6
 TRAIN:
   WORLD_SIZE: 4
   BATCH_SIZE: 4
