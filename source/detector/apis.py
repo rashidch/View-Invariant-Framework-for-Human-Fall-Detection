@@ -12,6 +12,9 @@ def get_detector(opt=None):
         from detector.yolo_api import YOLODetector
         from detector.yolo_cfg import cfg
         return YOLODetector(cfg, opt)
+    else:
+        raise NotImplementedError
+    '''
     elif opt.detector == 'tracker':
         from detector.tracker_api import Tracker
         from detector.tracker_cfg import cfg
@@ -20,10 +23,8 @@ def get_detector(opt=None):
         from detector.effdet_api import EffDetDetector
         from detector.effdet_cfg import cfg
         return EffDetDetector(cfg, opt)
-    else:
-        raise NotImplementedError
-
-
+    '''
+    
 class BaseDetector(ABC):
     def __init__(self):
         pass

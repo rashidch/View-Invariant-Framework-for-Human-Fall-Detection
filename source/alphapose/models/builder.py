@@ -33,10 +33,7 @@ def build_loss(cfg):
 
 def build_dataset(cfg, preset_cfg, **kwargs):
     exec(f'from ..datasets import {cfg.TYPE}')
-    default_args = {
-        'PRESET': preset_cfg,
-    }
-    for key, value in kwargs.items():
+    default_args =torch.zeros(boxes in kwargs.items():
         default_args[key] = value
     return build(cfg, DATASET, default_args=default_args)
 

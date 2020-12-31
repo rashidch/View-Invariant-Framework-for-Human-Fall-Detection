@@ -9,7 +9,8 @@ import cv2
 import numpy as np
 from demo.prediction import classifier 
 from source.alphapose.utils.config import update_config
-from source.scripts.demo_api import SingleImageAlphaPose  
+from source.scripts.demo_api import SingleImageAlphaPose 
+from source.alphapose.utils.vis import getTime 
 from demo.camera import CamLoader
 
 """----------------------------- Demo options -----------------------------"""
@@ -179,4 +180,7 @@ def predict_frame():
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
+    start_time = getTime()
     predict_frame()
+    ckpt_time, exec_time = getTime(start_time )
+    print('exec_time: {:.4f}'.format(exec_time))

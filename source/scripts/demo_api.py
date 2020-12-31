@@ -172,14 +172,14 @@ class DataWriter():
             boxes, scores, ids, preds_img, preds_scores, pick_ids = \
                 pose_nms(boxes, scores, ids, preds_img, preds_scores, self.opt.min_box_area)
             
+            #filter boxes on based on highest score and consider a box with highest score only
             max_score = 0
             idx_max = 0
             for k, score in enumerate(scores):
                 if scores[k]>max_score:
                     max_score = scores[k]
                     idx_max   = k
-            print('idxmax: {}, max score: {}'.format(idx_max, max_score))
-            
+            #print('idxmax: {}, max score: {}'.format(idx_max, max_score))
             _result = []
             k = idx_max
             #for k, score in enumerate(scores):
@@ -224,7 +224,7 @@ class SingleImageAlphaPose():
 
         print(f'Loading pose model from {args.checkpoint}...')
         self.pose_model.load_state_dict(torch.load(args.checkpoint, map_location=args.device))
-        self.pose_dataset = builder.retrieve_dataset(cfg.DATASET.TRAIN)
+        #self.pose_dataset = builder.retrieve_dataset(cfg.DATASET.TRAIN)
 
         self.pose_model.to(args.device)
         self.pose_model.eval()
@@ -266,12 +266,18 @@ class SingleImageAlphaPose():
                         runtime_profile['dt'].append(det_time)
                     # Pose Estimation
                     inps = inps.to(self.args.device)
+                    '''
                     if self.args.flip:
                         inps = torch.cat((inps, flip(inps)))
+                    '''
                     hm = self.pose_model(inps)
+
+                    '''
                     if self.args.flip:
                         hm_flip = flip_heatmap(hm[int(len(hm) / 2):], self.pose_dataset.joint_pairs, shift=True)
                         hm = (hm[0:int(len(hm) / 2)] + hm_flip) / 2
+                    '''
+                    
                     if self.args.profile:
                         ckpt_time, pose_time = getTime(ckpt_time)
                         runtime_profile['pt'].append(pose_time)

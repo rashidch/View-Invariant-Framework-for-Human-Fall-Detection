@@ -35,9 +35,9 @@ class YOLODetector(BaseDetector):
         self.detector_opt = opt
         self.model_cfg = cfg.get('CONFIG', 'source/detector/yolo/cfg/yolov3-spp.cfg')
         self.model_weights = cfg.get('WEIGHTS', 'source/detector/yolo/data/yolov3-spp.weights')
-        self.inp_dim = cfg.get('INP_DIM', 608)
-        self.nms_thres = cfg.get('NMS_THRES', 0.6)
-        self.confidence = 0.3 if (False if not hasattr(opt, 'tracking') else opt.tracking) else cfg.get('CONFIDENCE', 0.05)
+        self.inp_dim = cfg.get('INP_DIM', 320)
+        self.nms_thres = cfg.get('NMS_THRES', 0.4)
+        self.confidence = 0.6 if (False if not hasattr(opt, 'tracking') else opt.tracking) else cfg.get('CONFIDENCE', 0.05)
         self.num_classes = cfg.get('NUM_CLASSES', 80)
         self.model = None
 
@@ -70,7 +70,6 @@ class YOLODetector(BaseDetector):
         Input: image name(str) or raw image data(ndarray or torch.Tensor,channel GBR)
         Output: pre-processed image data(torch.FloatTensor,(1,3,h,w))
         """
-        print('img_source', img_source)
         if isinstance(img_source, str):
             img, orig_img, im_dim_list = prep_image(img_source, self.inp_dim)
         elif isinstance(img_source, torch.Tensor) or isinstance(img_source, np.ndarray):

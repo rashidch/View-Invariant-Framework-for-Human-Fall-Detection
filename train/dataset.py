@@ -32,21 +32,13 @@ class SeqDataset(Dataset):
 
 class SinglePoseDataset(Dataset):            
     
-    def __init__(self,inputX,tagY):
-        self.X = inputX
-        self.Y = tagY
+    def __init__(self,dataset,labels):
+        self.X = dataset
+        self.Y = labels
     
     def __len__(self):
         return len(self.X)
     
     def __getitem__(self, idx):
         return {'data':torch.Tensor(self.X[idx]),'label':(self.Y[idx])}
-    # def __init__(self):
-    #     self.X = []
-    #     self.Y = []
-    # def add(self,x,y):
-    #     self.X.append(x)
-    #     self.Y.append(y)
-    # def numpy(self):
-    #     self.X = np.array(self.X)
-    #     self.Y = np.array(self.Y)
+    
