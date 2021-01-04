@@ -17,20 +17,19 @@ class CamLoader:
         queue_size: (int) Maximum queue size. Default: 256,
         preprocess: (Callable function) to process the frame before return.
     """
-    def __init__(self, camera, batch_size=1, queue_size=256, preprocess=None, output='1.avi'):
+    def __init__(self, camera, batch_size=1, queue_size=256, output='1.avi'):
         self.stream = cv2.VideoCapture(camera)
         assert self.stream.isOpened(), 'Cannot read camera source!'
         self.fps = self.stream.get(cv2.CAP_PROP_FPS)
         self.frame_size = (int(self.stream.get(3)),int(self.stream.get(4)))
         self.frame_width  = int(self.stream.get(3))
         self.frame_height = int(self.stream.get(4))
-        self.out = cv2.VideoWriter(output,cv2.VideoWriter_fourcc('M','J','P','G'), 30, (self.frame_width,self.frame_height))
+        self.out = cv2.VideoWriter(output, cv2.VideoWriter_fourcc('M','J','P','G'), 30, (self.frame_width,self.frame_height))
         # Queue for storing each frames.
         self.stopped = False
         self.batch_size = batch_size
         self.Q = Queue(maxsize=queue_size)
 
-        self.preprocess_fn = preprocess
     
     def save_video(self, frame, file_name='1.avi'):
 

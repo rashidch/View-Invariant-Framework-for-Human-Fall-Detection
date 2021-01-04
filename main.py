@@ -98,7 +98,14 @@ def predict_frame():
     cam_source = args.inputvideo
     if type(cam_source) is str and os.path.isfile(cam_source):
         # Use loader thread with Q for video file.
-        cam = CamLoader(cam_source, queue_size=1000, output=args.save_out).start()
+        #cam = CamLoader(cam_source, queue_size=1000, output=args.save_out).start()
+        cap = cv2.VideoCapture(cam_source)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        frame_width =  int(cap.get(3))
+        frame_height = int(cap.get(4))
+    
+    output = args.save_out
+    out = cv2.VideoWriter(output, cv2.VideoWriter_fourcc('M','J','P','G'),20, (frame_width, frame_height))
     
     im_name = cam_source.split('/')[-1]
     demo = SingleImageAlphaPose(args, cfg)
@@ -108,75 +115,84 @@ def predict_frame():
     f = 0
     count_fall_frames = 0
     flag_show_frames = 0
-    while cam.grabbed():
-        f += 1
-        frame = cam.getitem()
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = ResizePadding(frame,576,720)  
-        image = frame.copy()
-        pose = demo.process(im_name, image)    
-        if pose is not None:
-            frame = demo.vis(frame, pose)   # visulize the pose result
+    #while cam.grabbed():
+    while (cap.isOpened()):
+       
+        #frame = cam.getitem()
+        ret, frame = cap.read()
+        if ret ==True:
+            f += 1
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = ResizePadding(frame,576,720)  
+            image = frame.copy()
+            pose = demo.process(im_name, image)    
+            if pose is not None:
+                frame = demo.vis(frame, pose)   # visulize the pose result
 
-        window_name = "Fall Detection Window" 
-        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-        #rame2 = frame.copy()
-        if pose==None:
-            #cv2.imshow(window_name, image)
-            continue
-        
-        with torch.no_grad():
-            pose_predictor.load_model()
-            human = pose['result'][0]
+            window_name = "Fall Detection Window" 
+            cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+            #rame2 = frame.copy()
+            if pose==None:
+                #cv2.imshow(window_name, image)
+                continue
             
-            actres = pose_predictor.predict_action(human['keypoints'])
-            actres = actres.cpu().numpy().reshape(-1)
-            predictions = np.argmax(actres)
-            confidence = round(actres[predictions],3)
-                   
-            action_name = tagI2W[predictions]
-
-            if action_name=='Fall' and confidence>0.9:
-                frame_new =  cv2.putText(frame, text='Falling', org=(520, 30),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 0, 0), thickness=2)
+            with torch.no_grad():
+                pose_predictor.load_model()
+                human = pose['result'][0]
                 
-                frame_new =  cv2.putText(frame, text='Confidence: {}'.format(confidence), org=(520, 60),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 255, 255), thickness=2)
-                   
-                                
-            elif action_name=='Stand' and confidence>0.9:
-                frame_new =  cv2.putText(frame, text='Standing', org=(520, 30),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 230, 0), thickness=2)
-                frame_new =  cv2.putText(frame, text='Confidence: {}'.format(confidence), org=(520, 60),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 255, 255), thickness=2)
-            
-            elif action_name=='Tie' and confidence>0.9:
-                frame =  cv2.putText(frame, text='Tying', org=(520, 30),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 230, 0), thickness=2)
+                actres = pose_predictor.predict_action(human['keypoints'])
+                actres = actres.cpu().numpy().reshape(-1)
+                predictions = np.argmax(actres)
+                confidence = round(actres[predictions],3)
+                    
+                action_name = tagI2W[predictions]
 
-                frame_new =  cv2.putText(frame, text='Confidence: {}'.format(confidence), org=(520, 60),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 255, 255), thickness=2)
-            
-            frame_new = cv2.putText(frame, text='Frame: %d, FPS: %f' % (f, 1.0 / (time.time() - fps_time)),
-                                org=(10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                    fontScale=1, color=(255,255,255), thickness=2)
-            
-            frame_new = frame_new[:, :, ::-1]
-            fps_time = time.time()
+                if action_name=='Fall' and confidence>0.9:
+                    frame_new =  cv2.putText(frame, text='Falling', org=(520, 30),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 0, 0), thickness=2)
+                    
+                    #frame_new =  cv2.putText(frame, text='Confidence: {}'.format(confidence), org=(520, 60),
+                    #    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 255, 255), thickness=2)
+                    
+                                    
+                elif action_name=='Stand' and confidence>0.9:
+                    frame_new =  cv2.putText(frame, text='Standing', org=(520, 30),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 230, 0), thickness=2)
+                    #frame_new =  cv2.putText(frame, text='Confidence: {}'.format(confidence), org=(520, 60),
+                    #    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 255, 255), thickness=2)
+                
+                elif action_name=='Tie' and confidence>0.9:
+                    frame =  cv2.putText(frame, text='Tying', org=(520, 30),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 230, 0), thickness=2)
 
-            # Show Frame.
-            cv2.resizeWindow('image', 600,600)
-            cv2.imshow(window_name, frame_new)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                    #frame_new =  cv2.putText(frame, text='Confidence: {}'.format(confidence), org=(520, 60),
+                    #    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 255, 255), thickness=2)
+                
+                frame_new = cv2.putText(frame, text='Frame: %d, FPS: %f' % (f, 1.0 / (time.time() - fps_time)),
+                                    org=(10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                        fontScale=1, color=(255,255,255), thickness=2)
+                #print('shape', frame_new.shape)
+                frame_new = frame_new[:, :, ::-1]
+                #print('shape', frame_new.shape)
+                fps_time = time.time()
 
-            dim = (int(cam.frame_width),int(cam.frame_height))
-            frame_new = cv2.resize(frame_new,dim , interpolation = cv2.INTER_AREA)
-            cam.save_video(frame_new)
+                # Show Frame.
+                cv2.resizeWindow('image', 600,600)
+                cv2.imshow(window_name, frame_new)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
+                #dim = (int(cam.frame_width),int(cam.frame_height))
+                dim = (int(frame_width),int(frame_height))
+                frame_new = cv2.resize(frame_new,dim , interpolation = cv2.INTER_AREA)
+                #cam.save_video(frame_new)
+                out.write(frame_new.astype('uint8'))
+        else:
+            break
     # Clear resource.
-    cam.stop()
-    cam.out.release()
+    #cam.stop()
+    cap.release()
+    out.release()
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
