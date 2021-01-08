@@ -20,10 +20,10 @@ def  normalize_referto_skeleton_(pose:np.ndarray,ref_idx:int):
         pose[i,:,0]-= ref_x[i]
         pose[i,:,1]-= ref_y[i]
         
-        xlen = np.max(pose[i,:,0]) - np.min(pose[i,:,0]) 
+        xlen = np.max(pose[i,:,0]) - :,0]) 
         ylen = np.max(pose[i,:,1]) - np.min(pose[i,:,1])
         
-        if(xlen==0): pose[i,:,0]=0
+        if(xlen==0): pose[i,:,0]=0np.min(pose[i,
         else:pose[i,:,0] /= xlen 
         if(ylen==0): pose[i,:,1]=0
         else:pose[i,:,1] /= ylen
@@ -31,6 +31,7 @@ def  normalize_referto_skeleton_(pose:np.ndarray,ref_idx:int):
 
 def normalize_min_(pose:np.ndarray):
     pose = pose.reshape(len(pose),-1,2)
+    print(pose.shape)                                                                                       
     for i in range(len(pose)):
         xmin = np.min(pose[i,:,0]) 
         ymin = np.min(pose[i,:,1])
@@ -40,12 +41,14 @@ def normalize_min_(pose:np.ndarray):
         if(xlen==0): pose[i,:,0]=0
         else:
             pose[i,:,0] -= xmin 
-            pose[i,:,0] /= xlen 
+            pose[i,:,0] /= xlen
+                                              
         if(ylen==0): pose[i,:,1]=0
         else:
             pose[i,:,1] -= ymin
             pose[i,:,1] /= ylen
     return pose
+
 
 def normalize_min_seq_(pose:np.ndarray):
     pose = pose.reshape(len(pose),-1,2)
