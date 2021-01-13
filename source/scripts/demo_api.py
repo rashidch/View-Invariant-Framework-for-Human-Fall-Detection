@@ -20,10 +20,8 @@ from alphapose.utils.pPose_nms import pose_nms
 from alphapose.utils.presets import SimpleTransform
 from alphapose.utils.transforms import flip, flip_heatmap
 from alphapose.models import builder
-from alphapose.utils.config import update_config
 from detector.apis import get_detector
 from alphapose.utils.vis import getTime
-
 
 class DetectionLoader():
     def __init__(self, detector, cfg, opt):
@@ -202,11 +200,11 @@ class DataWriter():
             }
             
             if hm_data.size()[1] == 49:
-                from alphapose.utils.vis import vis_frame_dense as vis_frame
+                from source.alphapose.utils.vis import vis_frame_dense as vis_frame
             elif self.opt.vis_fast:
-                from alphapose.utils.vis import vis_frame_fast as vis_frame
+                from source.alphapose.utils.vis import vis_frame_fast as vis_frame
             else:
-                from alphapose.utils.vis import vis_frame
+                from source.alphapose.utils.vis import vis_frame
             self.vis_frame = vis_frame
 
         return result
@@ -224,7 +222,7 @@ class SingleImageAlphaPose():
 
         print(f'Loading pose model from {args.checkpoint}...')
         self.pose_model.load_state_dict(torch.load(args.checkpoint, map_location=args.device))
-        #self.pose_dataset = builder.retrieve_dataset(cfg.DATASET.TRAIN)
+        self.pose_dataset = builder.retrieve_dataset(cfg.DATASET.TRAIN)
 
         self.pose_model.to(args.device)
         self.pose_model.eval()
@@ -248,6 +246,7 @@ class SingleImageAlphaPose():
                 (inps, orig_img, im_name, boxes, scores, ids, cropped_boxes) = self.det_loader.process(im_name, image).read()
                 if orig_img is None:
                     raise Exception("no image is given")
+
                 if boxes is None or boxes.nelement() == 0:
                     if self.args.profile:
                         ckpt_time, det_time = getTime(start_time)
@@ -310,36 +309,3 @@ class SingleImageAlphaPose():
         if pose is not None:
             image = self.writer.vis_frame(image, pose, self.writer.opt)
         return image
-'''
-    def writeJson(self, final_result, outputpath, form='coco', for_eval=False):
-        from alphapose.utils.pPose_nms import write_json
-        pose_tuple = write_json(final_result, outputpath, form=form, for_eval=for_eval)
-        print("Results have been written to json.")
-        
-        return pose_tuple
-        
-def example():
-    outputpath = "examples/res/"
-    if not os.path.exists(outputpath + '/vis'):
-        os.mkdir(outputpath + '/vis')
-
-    demo = SingleImageAlphaPose(args, cfg)
-    im_name = args.inputimg    # the path to the target image
-    image = cv2.cvtColor(cv2.imread(im_name), cv2.COLOR_BGR2RGB)
-    orig_image = image.copy()
-    pose = demo.process(im_name, image)
-    img = orig_image     # or you can just use: img = cv2.imread(image)
-    img = demo.vis(img, pose)   # visulize the pose result
-    cv2.imwrite(os.path.join(outputpath, 'vis', os.path.basename(im_name)), img)
-    
-    # if you want to vis the img:
-    # cv2.imshow("AlphaPose Demo", img)
-    # cv2.waitKey(30)
-
-    # write the result to json:
-    #result = [pose]
-    #demo.writeJson(result, outputpath, form=args.format, for_eval=args.eval)
-
-if __name__ == "__main__":
-    example()
-'''

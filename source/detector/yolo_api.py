@@ -6,8 +6,8 @@
 """API of yolo detector"""
 import os
 import sys
-sys.path.insert(0, os.path.dirname(__file__))
-from abc import ABC, abstractmethod
+#sys.path.insert(0, os.path.dirname(__file__))
+#from abc import ABC, abstractmethod
 import platform
 
 import torch
