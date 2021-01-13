@@ -19,11 +19,14 @@ def debuglog(obj):
     print('')
 
 POSE_JOINT_SIZE = 34
-def get_model(name,tagI2W):
+def get_model(name,tagI2W, n_frames=5):
     if(name == 'FcLstm'):
         return FcLstm(POSE_JOINT_SIZE,len(tagI2W))
     elif(name == 'dnnSingle'):
         return dnnSingle(POSE_JOINT_SIZE,len(tagI2W))
+    elif(name == 'DNN_Single'):
+        return DNN_Single(input_dim=POSE_JOINT_SIZE*n_frames, class_num=len(tagI2W))
+
 
 class FcLstm(nn.Module):
     def __init__(self,input_dim,class_num,batch_first=True,initrange=0.5):
@@ -174,3 +177,68 @@ class dnnSeq(nn.Module):
         # print('sm:_out = F.softmax(_fc4,dim=1)out)
 
         return _out.view(-1,_out.shape[-1])
+
+
+class DNN_Single(torch.nn.Module):
+    
+    def __init__(self, input_dim, class_num, initrange=0.5):
+        
+        super().__init__()
+        self.fc1 = torch.nn.Linear(input_dim, 128)
+        self.bn1 = torch.nn.BatchNorm1d(128)
+        self.fc2 = torch.nn.Linear(128, 64)
+        self.bn2 = torch.nn.BatchNorm1d(64)
+        self.fc3 = torch.nn.Linear(64,16)
+        self.bn3 = torch.nn.BatchNorm1d(16)
+        self.fc4 = torch.nn.Linear(16, class_num)
+        self.class_num = class_num
+        self.init_weights(initrange)
+    
+    def init_weights(self, initrange):
+        
+        self.fc1.weight.data.uniform_(-initrange, initrange)
+        self.fc1.bias.data.zero_()
+        self.fc2.weight.data.uniform_(-initrange, initrange)
+        self.fc2.bias.data.zero_()
+        self.fc3.weight.data.uniform_(-initrange, initrange)
+        self.fc3.bias.data.zero_()
+        self.fc4.weight.data.uniform_(-initrange, initrange)
+        self.fc4.bias.data.zero_()
+    
+    def forward(self, _input):
+        
+        _fc1 = F.relu(self.fc1(_input))
+        
+        _bn1 = self.bn1(_fc1)
+        
+        _fc2 = F.relu(self.fc2(_bn1))
+        _bn2 = self.bn2(_fc2)
+        
+        _fc3 = F.relu(self.fc3(_bn2))
+        _bn3 = self.bn3(_fc3)
+        
+        _fc4 = self.fc4(_bn3)
+        
+        output = F.softmax(_fc4, dim=1)
+        
+        return output
+
+    def exe(self,input_,device,holder):
+        input_ = torch.Tensor(input_).to(device)
+        return self.__call__(input_) # data,datalen
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

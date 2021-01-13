@@ -44,9 +44,9 @@ parser.add_argument('--outdir', dest='outputpath',
                     help='output-directory', default="examples/res/")
 parser.add_argument('--save_img', default=True, action='store_true',
                     help='save result as image')
-parser.add_argument('--vis', default=True, action='store_true',
+parser.add_argument('--vis', default=False, action='store_true',
                     help='visualize image')
-parser.add_argument('--showbox', default=True, action='store_true',
+parser.add_argument('--showbox', default=False, action='store_true',
                     help='visualize human bbox')
 parser.add_argument('--profile', default=True, action='store_true',
                     help='add speed profiling at screen output')

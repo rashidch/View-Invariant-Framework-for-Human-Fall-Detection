@@ -12,7 +12,7 @@ from abc import abstractmethod, abstractproperty
 import torch.utils.data as data
 from pycocotools.coco import COCO
 
-from alphapose.utils.presets import SimpleTransform
+from source.alphapose.utils.presets import SimpleTransform
 
 import cv2
 import json

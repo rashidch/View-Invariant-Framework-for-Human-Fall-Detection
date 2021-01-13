@@ -4,6 +4,8 @@ import time
 import cv2
 import numpy as np
 import torch
+import sys
+sys.path.append('/home/rasho/Falling-Person-Detection-based-On-AlphaPose')
 
 RED = (0, 0, 255)
 GREEN = (0, 255, 0)
@@ -126,8 +128,8 @@ def vis_frame_fast(frame, im_res, opt, format='coco'):
         if kp_num == 17:
             kp_preds = torch.cat((kp_preds, torch.unsqueeze((kp_preds[5, :] + kp_preds[6, :]) / 2, 0)))
             kp_scores = torch.cat((kp_scores, torch.unsqueeze((kp_scores[5, :] + kp_scores[6, :]) / 2, 0)))
-        if opt.pose_track or opt.tracking:
-            color = get_color_fast(int(abs(human['idx'])))
+        #if opt.pose_track or opt.tracking:
+        #color = get_color_fast(int(abs(human['idx'])))
         else:
             color = BLUE
 
@@ -154,10 +156,10 @@ def vis_frame_fast(frame, im_res, opt, format='coco'):
             cor_x, cor_y = int(kp_preds[n, 0]), int(kp_preds[n, 1])
             part_line[n] = (cor_x, cor_y)
             if n < len(p_color):
-                if opt.tracking:
-                    cv2.circle(img, (cor_x, cor_y), 3, color, -1)
-                else:
-                    cv2.circle(img, (cor_x, cor_y), 3, p_color[n], -1)
+                #if opt.tracking:
+                #cv2.circle(img, (cor_x, cor_y), 3, color, -1)
+                #else:
+                cv2.circle(img, (cor_x, cor_y), 3, p_color[n], -1)
             else:
                 cv2.circle(img, (cor_x, cor_y), 1, (255,255,255), 2)
         # Draw limbs
@@ -166,10 +168,10 @@ def vis_frame_fast(frame, im_res, opt, format='coco'):
                 start_xy = part_line[start_p]
                 end_xy = part_line[end_p]
                 if i < len(line_color):
-                    if opt.tracking:
-                        cv2.line(img, start_xy, end_xy, color, 2 * int(kp_scores[start_p] + kp_scores[end_p]) + 1)
-                    else:
-                        cv2.line(img, start_xy, end_xy, line_color[i], 2 * int(kp_scores[start_p] + kp_scores[end_p]) + 1)
+                    #if opt.tracking:
+                    #cv2.line(img, start_xy, end_xy, color, 2 * int(kp_scores[start_p] + kp_scores[end_p]) + 1)
+                    #else:
+                    cv2.line(img, start_xy, end_xy, line_color[i], 2 * int(kp_scores[start_p] + kp_scores[end_p]) + 1)
                 else:
                     cv2.line(img, start_xy, end_xy, (255,255,255), 1)  
 
@@ -273,8 +275,8 @@ def vis_frame(frame, im_res, opt, format='coco'):
         if kp_num == 17:
             kp_preds = torch.cat((kp_preds, torch.unsqueeze((kp_preds[5, :] + kp_preds[6, :]) / 2, 0)))
             kp_scores = torch.cat((kp_scores, torch.unsqueeze((kp_scores[5, :] + kp_scores[6, :]) / 2, 0)))
-        if opt.tracking:
-            color = get_color_fast(int(abs(human['idx'])))
+        #if opt.tracking:
+        #color = get_color_fast(int(abs(human['idx'])))
         else:
             color = BLUE
 
@@ -304,10 +306,10 @@ def vis_frame(frame, im_res, opt, format='coco'):
             part_line[n] = (int(cor_x), int(cor_y))
             bg = img.copy()
             if n < len(p_color):
-                if opt.tracking:
-                    cv2.circle(bg, (int(cor_x), int(cor_y)), 2, color, -1)
-                else:
-                    cv2.circle(bg, (int(cor_x), int(cor_y)), 2, p_color[n], -1)
+                #if opt.tracking:
+                #cv2.circle(bg, (int(cor_x), int(cor_y)), 2, color, -1)
+                #else:
+                cv2.circle(bg, (int(cor_x), int(cor_y)), 2, p_color[n], -1)
             else:
                 cv2.circle(bg, (int(cor_x), int(cor_y)), 1, (255,255,255), 2)
             # Now create a mask of logo and create its inverse mask also
