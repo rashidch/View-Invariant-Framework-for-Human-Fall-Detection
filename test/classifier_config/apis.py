@@ -9,6 +9,9 @@ def get_classifier_cfg(args):
     if args.classmodel == 'DNN_Single':
         from test.classifier_config.DNN_Single_cfg import cfg9 
         return cfg9
+    if args.classmodel == 'DNN':
+        from test.classifier_config.DNN_cfg import cfg9 
+        return cfg9
 
     raise NotImplementedError
 

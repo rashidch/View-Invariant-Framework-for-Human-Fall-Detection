@@ -20,9 +20,11 @@ class classifier():
         self.cfg   = get_classifier_cfg(self.opt)
         self.model = None
         self.holder = edict()
+        self.POSE_JOINT_SIZE = 34
+        self.n_frames = 10 
 
     def load_model(self):
-        self.model = get_model(self.cfg.MODEL,self.cfg.tagI2W)
+        self.model = get_model(self.cfg.MODEL,self.cfg.tagI2W, n_frames=10)
         ckpt = torch.load(self.cfg.CHEKPT, map_location=self.opt.device)
         self.model.load_state_dict(ckpt['model_state_dict'])
         if len(self.opt.gpus) > 1:
@@ -35,7 +37,7 @@ class classifier():
     def predict_action(self, keypoints):
         points = keypoints.numpy()
         points = normalize_min_(points)
-        points = points.reshape(1,170)
+        points = points.reshape(1,self.n_frames*self.POSE_JOINT_SIZE)
         actres = self.model.exe(points,self.opt.device,self.holder)
         return actres
 

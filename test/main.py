@@ -46,7 +46,7 @@ parser.add_argument('--cam', dest='inputvideo', help='video-name',
                     default='examples/demo/1.mp4') 
 
 """-----------------------------Classifier Options----------------------------"""
-parser.add_argument('--classifier', dest='classmodel', type=str, default='DNN_Single',
+parser.add_argument('--classifier', dest='classmodel', type=str, default='DNN',
                     help='choose classifer model, defualt dnn model')
 
 args = parser.parse_args()
@@ -103,9 +103,9 @@ def predict_frame():
     pose_predictor = classifier(args)
     
     fps_time = 0
-    n_frames = 5
+    n_frames = 10
     POSE_JOINT_SIZE = 34    
-    humans_Seq = torch.zeros([5, POSE_JOINT_SIZE])
+    humans_Seq = torch.zeros([n_frames, POSE_JOINT_SIZE])
     seq_idx = 0
 
     #while cam.grabbed():
