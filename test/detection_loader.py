@@ -2,10 +2,8 @@ import torch
 import os
 import numpy as np
 
-from alphapose.models import builder
-from alphapose.utils.presets import SimpleTransform
-
-
+from source.alphapose.models import builder
+from source.alphapose.utils.presets import SimpleTransform
 
 class DetectionLoader():
     def __init__(self, detector, cfg, opt):
@@ -13,10 +11,8 @@ class DetectionLoader():
         self.opt = opt
         self.device = opt.device
         self.detector = detector
-
         self._input_size = cfg.DATA_PRESET.IMAGE_SIZE
         self._output_size = cfg.DATA_PRESET.HEATMAP_SIZE
-
         self._sigma = cfg.DATA_PRESET.SIGMA
 
         pose_dataset = builder.retrieve_dataset(self.cfg.DATASET.TRAIN)
@@ -35,7 +31,10 @@ class DetectionLoader():
     def process(self, im_name, image):
         # start to pre process images for object detection
         self.image_preprocess(im_name, image)
-        # start to detect human in imagesfrom alphapose.utils.presets import SimpleTransform
+        # start to detect human in images
+        self.image_detection()
+        # start to post process cropped human image for pose estimation
+        self.image_postprocess()
         return self
 
     def image_preprocess(self, im_name, image):
