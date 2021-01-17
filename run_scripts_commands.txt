@@ -3,5 +3,5 @@ python main.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml --c
 
 
 
-python train/data_pre/get_keypoints.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint source/pretrained_models/fast_res50_256x192.pth --indir input/Falling_Standing_2 --outdir frame_output --save_img
+python train/data_pre/get_keypoints.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint source/pretrained_models/fast_res50_256x192.pth --indir input/Falling_Standing_2 --outdir frame_output --save_img --qsize 50
 

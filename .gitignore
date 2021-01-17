@@ -11,6 +11,9 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+sis_fall/
+realistic-fall-dataset/
+multicam_dataset/
 downloads/
 dataset/
 realistic-fall-dataset
