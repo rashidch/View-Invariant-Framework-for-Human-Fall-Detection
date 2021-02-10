@@ -1,3 +1,4 @@
+from time import process_time
 import numpy as np
 import torch
 from easydict import EasyDict as edict
@@ -5,6 +6,7 @@ from fallModels.F import normalize_min_
 from fallModels.models import get_model
 from test.classifier_config.apis import get_classifier_cfg
 from test.detection_loader import DetectionLoader
+from sklearn.decomposition import PCA
 """----- Load modules from source for structring code ----"""
 
 from source.alphapose.utils.transforms import get_func_heatmap_to_coord
@@ -14,17 +16,19 @@ from source.alphapose.models import builder
 from source.detector.apis import get_detector
 
 class classifier():
-    def __init__(self, opt):
+    def __init__(self, opt, n_frames):
 
         self.opt   = opt
         self.cfg   = get_classifier_cfg(self.opt)
         self.model = None
         self.holder = edict()
         self.POSE_JOINT_SIZE = 34
-        self.n_frames = 10 
+        self.n_frames = n_frames
+        self.pca_features = 26
 
     def load_model(self):
-        self.model = get_model(self.cfg.MODEL,self.cfg.tagI2W, n_frames=10)
+        self.model = get_model(self.cfg.MODEL,self.cfg.tagI2W, n_frames=self.n_frames)
+        #print(self.cfg.MODEL)
         ckpt = torch.load(self.cfg.CHEKPT, map_location=self.opt.device)
         self.model.load_state_dict(ckpt['model_state_dict'])
         if len(self.opt.gpus) > 1:
@@ -35,11 +39,19 @@ class classifier():
         self.model.eval()
     
     def predict_action(self, keypoints):
-        points = keypoints.numpy()
+        points = keypoints.numpy()[:,10:]
+        
         points = normalize_min_(points)
-        points = points.reshape(1,self.n_frames*self.POSE_JOINT_SIZE)
+        points = points.reshape(1,-1)
+        print(points.shape)
+        print(points)
+         #apply pca for dimensionalty reduction
+        pca = PCA(n_components=self.pca_features)
+        points = pca.fit_transform(points)
+        points = points.view(1,26)
         actres = self.model.exe(points,self.opt.device,self.holder)
         return actres
+
 
     def drawTagToImg(self,img, prediction):
         tag = self.cfg.tagI2W[prediction]
@@ -121,10 +133,10 @@ class PoseEstimation():
                 _result.append(
                     {
                         'keypoints':preds_img[k],
-                        #'kp_score':preds_scores[k],
-                        #'proposal_score': torch.mean(preds_scores[k]) + scores[k] + 1.25 * max(preds_scores[k]),
-                        #'idx':ids[k],
-                        #'bbox':[boxes[k][0], boxes[k][1], boxes[k][2]-boxes[k][0],boxes[k][3]-boxes[k][1]] 
+                        'kp_score':preds_scores[k],
+                        'proposal_score': torch.mean(preds_scores[k]) + scores[k] + 1.25 * max(preds_scores[k]),
+                        'idx':ids[k],
+                        'bbox':[boxes[k][0], boxes[k][1], boxes[k][2]-boxes[k][0],boxes[k][3]-boxes[k][1]] 
                     }
                 )
                 result = {
