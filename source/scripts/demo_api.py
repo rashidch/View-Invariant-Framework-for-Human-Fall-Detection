@@ -152,6 +152,7 @@ class DataWriter():
         else:
             # location prediction (n, kp, 2) | score prediction (n, kp, 1)
             assert hm_data.dim() == 4
+            #print('hm data', hm_data)
             if hm_data.size()[1] == 136:
                 self.eval_joints = [*range(0,136)]
             elif hm_data.size()[1] == 26:

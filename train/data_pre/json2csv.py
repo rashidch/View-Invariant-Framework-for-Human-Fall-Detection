@@ -10,6 +10,8 @@ execResjson = "find -type f -iname 'alphapose-results.json' "
 alphaI2W = [ "nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
 "LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
 
+#alphaI2W = ["Nose", "Neck", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist", "RHip",\
+#           "RKnee", "RAnkle", "LHip", "LKnee","LAnkle", "REye", "LEye", "REar","LEar"]
 @logger.catch
 def cleanJson(jslist:list):
     print('in clean')
@@ -21,13 +23,15 @@ def cleanJson(jslist:list):
         print('keypoints:',itKeypoints.shape)
         idx = jsitem['idx']
         imgid= jsitem['image_id']
+        box = jsitem['box']
+        score = jsitem['score']
         pose_class = jsitem['pose_class'].split('_')[0]
         if(len(idx)>1):
             # logger.debug('muti-idx: %s | %s'%(imgid,idx.__str__()))
             idx = idx[0][0]
         else:
             idx= idx[0]
-        d={'image_id': imgid, 'idx':idx, 'pos_class':pose_class}
+        d={'image_id': imgid, 'idx':idx, 'pos_class':pose_class, 'box':box, 'score':score}
         for i,xys in enumerate(itKeypoints):
             d[alphaI2W[i]+'_x'] = xys[0]
             d[alphaI2W[i]+'_y'] = xys[1]
