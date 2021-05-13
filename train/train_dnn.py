@@ -136,7 +136,7 @@ def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
                 loss_  = epoch_loss
                 conf_valid = conf_mat
                 #best_model_wts = copy.deepcopy(model.state_dict())
-                save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints_fallmodel/act_dnntiny_1')
+                save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints/act_dnntiny_1')
             
             if phase== 'train' and epoch_acc>best_acc:
                 conf_train = conf_mat

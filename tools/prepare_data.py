@@ -21,7 +21,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-out_dir = os.path.join(args.data_path.split("/")[0], "Fall_Images_3")
+out_dir = os.path.join(args.data_path.split("/")[0], "Fall_Images_1")
 if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 

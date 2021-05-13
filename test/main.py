@@ -42,7 +42,7 @@ parser.add_argument('--cam', dest='inputvideo', help='video-name',
                     default='examples/demo/test/1.mp4') 
 
 """-----------------------------Classifier Options----------------------------"""
-parser.add_argument('--classifier', dest='classmodel', type=str, default='FallNet',
+parser.add_argument('--classifier', dest='classmodel', type=str, default='dnntiny',
                     help='choose classifer model, defualt dnn model')
 
 args = parser.parse_args()

@@ -29,7 +29,7 @@ class SinglePoseDataset(Dataset):
         
         # get csv file path
         curr_dir = os.getcwd()
-        csv_file_path = os.path.join(curr_dir, 'train/data/drop_skeleton_fall1.csv')
+        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/drop_skeleton_fall1.csv')
         
         # list for storing data and labels
         data  = []
