@@ -26,7 +26,7 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 
 ## Features
 * Clear folder structure which is suitable for many deep learning projects.
-* `.json` config file support for convenient parameter tuning.
+* Config files to support for convenient parameter tuning.
 * Customizable command line options for more convenient parameter tuning.
 * Checkpoint saving and resuming.
 
