@@ -139,19 +139,20 @@ dmypy.json
 *.pth 
 *.zip
 *.7z
-
+*.txt
+*.csv
+*.pickle
 <<<<<<< HEAD
 <<<<<<< HEAD
 *.weights
 *.pt
+*.xlsx
 =======
 >>>>>>> e53bff4bc58c5c6f0e15a9b2c4e5cfac5c0d7ff6
 =======
 >>>>>>> e53bff4bc58c5c6f0e15a9b2c4e5cfac5c0d7ff6
 
 #data folders
-input/
-outputs/
 frames_output/
 examples/
 sis_fall/
@@ -160,7 +161,7 @@ multicam_dataset/
 downloads/
 Skeleton_output/
 train/data/
-dataset/
 realistic-fall-dataset/
+dataset/SkeletonData
 
 
