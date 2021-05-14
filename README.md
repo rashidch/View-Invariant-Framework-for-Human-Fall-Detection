@@ -4,7 +4,7 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
-
+## Table of Contents:
 * [Falling-Person-Detection-based-On-AlphaPose](#Falling-Person-Detection-based-On-AlphaPose)
 	* [Requirements](#requirements)
 	* [Features](#features)
@@ -12,7 +12,10 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 	* [Usage](#usage)
 		* [Config file format](#config-file-format)
     * [Fall Detection Results](#Inference)
-      * Results on Custom r Datatset
+      * Results on Custom Elevator Fall Detection Datatset
+      * Results on Benchmark Datasets 
+        * Le2i
+        * MultiCam
     * [Contribution](#contribution)
     * [TODOs](#todos)
     * [License](#license)
@@ -111,18 +114,13 @@ Code should pass the [Flake8](http://flake8.pycqa.org/en/latest/) check before c
 
 ## TODOs
 
-- [ ] Multiple optimizers
-- [ ] Support more tensorboard functions
-- [x] Using fixed random seed
-- [x] Support pytorch native tensorboard
-- [x] `tensorboardX` logger support
-- [x] Configurable logging layout, checkpoint naming
-- [x] Iteration-based training (instead of epoch-based)
-- [x] Adding command line option for fine-tuning
+- [ ] Training on Benchmark Datasets
+
 
 ## License
 This project is licensed under the MIT License. See  LICENSE for more details
 
+
 ## Acknowledgements
-This project is inspired by the project [Tensorflow-Project-Template](https://github.com/MrGemy95/Tensorflow-Project-Template) by [Mahmoud Gemy](https://github.com/MrGemy95)
+This project is developed based on Alphapose [codebase](https://github.com/MVIG-SJTU/AlphaPose)
 
