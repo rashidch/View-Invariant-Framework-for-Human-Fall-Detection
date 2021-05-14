@@ -115,6 +115,8 @@ Code should pass the [Flake8](http://flake8.pycqa.org/en/latest/) check before c
 ## TODOs
 
 - [ ] Training on Benchmark Datasets
+- [ ] Testing on Benchmark Datasets
+- [ ] Inference on Videos 
 
 
 ## License
