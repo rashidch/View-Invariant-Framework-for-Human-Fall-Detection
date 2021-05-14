@@ -11,22 +11,12 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 	* [Folder Structure](#folder-structure)
 	* [Usage](#usage)
 		* [Config file format](#config-file-format)
-    * [Using Multiple GPU](#using-multiple-gpu)
-	* [Customization](#customization)
-		* [Custom CLI options](#custom-cli-options)
-		* [Data Loader](#data-loader)
-		* [Trainer](#trainer)
-		* [Model](#model)
-		* [Loss](#loss)
-		* [metrics](#metrics)
-		* [Additional logging](#additional-logging)
-		* [Validation data](#validation-data)
-		* [Checkpoints](#checkpoints)
-    * [Tensorboard Visualization](#tensorboard-visualization)
-	* [Contribution](#contribution)
-	* [TODOs](#todos)
-	* [License](#license)
-	* [Acknowledgements](#acknowledgements)
+    * [Fall Detection Results](#Inference)
+      * Results on Custom r Datatset
+    * [Contribution](#contribution)
+    * [TODOs](#todos)
+    * [License](#license)
+    * [Acknowledgements](#acknowledgements)
 
 <!-- /code_chunk_output -->
 
