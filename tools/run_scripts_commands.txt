@@ -2,3 +2,4 @@ python test/main.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yam
 
 python dataset/data_prepare/get_keypoints.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint source/pretrained_models/fast_res50_256x192.pth --indir input/Falling_Standing_2 --outdir frames --save_img --qsize 50
 
+python train/train_dnn.py 

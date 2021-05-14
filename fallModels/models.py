@@ -9,13 +9,17 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def get_model(name,tagI2W, n_frames=5, POSE_JOINT_SIZE=24):
     if(name == 'dnnSingle'):
         return dnnSingle(POSE_JOINT_SIZE,len(tagI2W))
-    elif(name == 'DNN_tiny'):
-        return DNN_tiny(input_dim=POSE_JOINT_SIZE*n_frames, class_num=len(tagI2W))
+    elif(name == 'dnntiny'):
+        print("loaded dnntiny model")
+        return dnntiny(input_dim=POSE_JOINT_SIZE*n_frames, class_num=len(tagI2W))
     elif(name == 'FallModel'):
+        print("loaded FallModel model")
         return FallModel(input_dim=POSE_JOINT_SIZE, class_num=len(tagI2W))
     elif(name == 'FallNet'):
+        print("loaded FallNet model")
         return FallNet(input_dim=POSE_JOINT_SIZE, class_num=len(tagI2W))
     elif(name == 'DNN'):
+        print("loaded DNN model")
         return DNN(input_dim=POSE_JOINT_SIZE*n_frames, class_num=len(tagI2W))
 
 class dnnSingle(nn.Module):
@@ -169,12 +173,13 @@ class DNN(torch.nn.Module):
         return self.__call__(input_) # data,datalen
 
 
-class DNN_tiny(torch.nn.Module):
+class dnntiny(torch.nn.Module):
     
     def __init__(self, input_dim, class_num):
         
         super().__init__()
         self.fc1 = torch.nn.Linear(input_dim,120)
+        print('fc1',self.fc1)
         self.bn1 = torch.nn.BatchNorm1d(120)
         self.fc2 = torch.nn.Linear(120, 64)
         self.bn2 = torch.nn.BatchNorm1d(64)
@@ -184,15 +189,16 @@ class DNN_tiny(torch.nn.Module):
         self.class_num = class_num
       
     def forward(self, _input):
-        
+        print('input', _input.shape)
         _fc1 = F.relu(self.fc1(_input))
+        print('fc1:res',_fc1.shape)
         _bn1 = self.bn1(_fc1)
         _fc2 = F.relu(self.fc2(_bn1))
         _bn2 = self.bn2(_fc2)
         _fc3 = F.relu(self.fc3(_bn2))
         _bn3 = self.bn3(_fc3)
         _fc4 = self.fc4(_bn3)
-        
+
         output = F.softmax(_fc4, dim=1)
         
         return _fc4, output
