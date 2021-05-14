@@ -92,14 +92,14 @@ def predict_frame():
     # get the name of video file
     im_name = cam_source.split('/')[-1]
     
-    n_frames = 30
+    n_frames = 1
     fps_time = 0
     POSE_JOINT_SIZE = 24    
     humanData = torch.zeros([n_frames, POSE_JOINT_SIZE])
     
     # create objects of pose esimator and classifier class
     pose_estimator = PoseEstimation(args, cfg) 
-    pose_predictor = classifier(args, n_frames)
+    pose_predictor = classifier(args, n_frames, POSE_JOINT_SIZE)
     frameIdx=0
     while (cap.isOpened()):
        

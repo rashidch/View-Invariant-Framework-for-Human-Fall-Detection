@@ -19,6 +19,7 @@ class SinglePoseDataset(Dataset):
         # get data and label from csvget 
         dataset, labels = SinglePoseDataset.ReadPoseData(n_frames)
         
+        print('Dataset',dataset.shape, 'labels',labels.shape)
         
         self.X = dataset
         self.y = labels
@@ -29,7 +30,7 @@ class SinglePoseDataset(Dataset):
         
         # get csv file path
         curr_dir = os.getcwd()
-        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/drop_skeleton_fall1.csv')
+        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/taoyuan.csv')
         
         # list for storing data and labels
         data  = []
@@ -40,13 +41,13 @@ class SinglePoseDataset(Dataset):
         
         # read csv file
         KP_df = pd.read_csv(csv_file_path)
-        print("DataFrame shape:", KP_df.shape)
+        #print("DataFrame shape:", KP_df.shape)
         # convert pos_class to categories
         KP_df['pos_class'] = KP_df['pos_class'].astype('category')
         KP_df['pos_class'] = KP_df['pos_class'].cat.codes
 
         # skipping (0-3) colomns , return values of all rows and columns from 4 to last
-        features = KP_df.iloc[:,7:].values
+        features = KP_df.iloc[:,6:].values
         #return values of pose_class 
         pose_class = KP_df['pos_class'].values
         # normalize keypoints 
@@ -121,32 +122,32 @@ class SinglePoseDataset(Dataset):
     
     def get_class_labels(self):
         
-        labels = ["Fall","Stand", "Tie"]
+        labels = ["Fall","Stand"]
         
         return labels
     
     def reshape_features(self):
         self.X = self.X.reshape(-1, self.X.shape[1]*self.X.shape[2])
 
-#prepare pytorch data loaders 
-def prepare_data(reshape=False, seq_len=10, bs=32, n_test = 0.35):
+    #prepare pytorch data loaders 
+    @staticmethod
+    def getData(reshape=False, n_frames=1, bs=32, n_test = 0.35):
     
-    # load pose dataset
-    dataset = SinglePoseDataset(n_frames=seq_len)
-    targets = dataset.y
-    
-    # reshape from N,10,34 to N,Num_Features
-    if reshape:
-        dataset.reshape_features()
-    
-    
-    #stratified train test split
-    train_idx, valid_idx = train_test_split(np.arange(len(targets)), test_size=n_test, stratify=targets)
-    
-    train_sampler = SubsetRandomSampler(train_idx)
-    valid_sampler = SubsetRandomSampler(valid_idx)
-    
-    train_dl  = DataLoader(dataset, batch_size=bs, num_workers=4, sampler=train_sampler, drop_last=True)
-    valid_dl  = DataLoader(dataset, batch_size=bs, sampler=valid_sampler, drop_last=True)
-    
-    return {'train':train_dl, 'valid':valid_dl}, {'train':len(train_sampler), 'valid':len(valid_sampler)}
+        # load pose dataset
+        dataset = SinglePoseDataset(n_frames=n_frames)
+        targets = dataset.y
+        
+        # reshape from N,10,34 to N,Num_Features
+        if reshape:
+            dataset.reshape_features()
+        
+        #stratified train test split
+        train_idx, valid_idx = train_test_split(np.arange(len(targets)), test_size=n_test, stratify=targets)
+        
+        train_sampler = SubsetRandomSampler(train_idx)
+        valid_sampler = SubsetRandomSampler(valid_idx)
+        
+        train_dl  = DataLoader(dataset, batch_size=bs, num_workers=4, sampler=train_sampler, drop_last=True)
+        valid_dl  = DataLoader(dataset, batch_size=bs, sampler=valid_sampler, drop_last=True)
+        
+        return {'train':train_dl, 'valid':valid_dl}, {'train':len(train_sampler), 'valid':len(valid_sampler)}
