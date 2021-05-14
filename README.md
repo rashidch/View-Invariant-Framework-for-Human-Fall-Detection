@@ -5,7 +5,7 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 
 <!-- code_chunk_output -->
 
-* [PyTorch Template Project](#pytorch-template-project)
+* [Falling-Person-Detection-based-On-AlphaPose](#Falling-Person-Detection-based-On-AlphaPose)
 	* [Requirements](#requirements)
 	* [Features](#features)
 	* [Folder Structure](#folder-structure)
