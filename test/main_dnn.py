@@ -9,7 +9,7 @@ import numpy as np
 from test.prediction import classifier
 from test.prediction import PoseEstimation 
 from source.alphapose.utils.config import update_config
-from test.vis import vis_frame
+from test.vis import vis_frame, vis_frame_fast
 
 
 """----------------------------- Demo options -----------------------------"""
@@ -76,7 +76,7 @@ def ResizePadding(image, height, width):
 
 def predict_frame():
 
-    tagI2W = ["Fall","Stand", "Tie"]
+    tagI2W = ["Fall","Stand"]
     cam_source = args.inputvideo
 
     if type(cam_source) is str and os.path.isfile(cam_source):
@@ -95,7 +95,7 @@ def predict_frame():
     n_frames = 1
     fps_time = 0
     POSE_JOINT_SIZE = 24    
-    humanData = torch.zeros([n_frames, POSE_JOINT_SIZE])
+    #humanData = torch.zeros([n_frames, POSE_JOINT_SIZE])
     
     # create objects of pose esimator and classifier class
     pose_estimator = PoseEstimation(args, cfg) 
@@ -117,63 +117,60 @@ def predict_frame():
                 #cv2.imshow(window_name, image)
                 continue
             
-            # merge the body keypints of (N=5) frames to create a sequence of body keypoints  
-            if frameIdx!=n_frames:
-                human = pose['result'][0]    
-                humanData[frameIdx] = human['keypoints'][5:].view(1,POSE_JOINT_SIZE)
-                frameIdx+=1
+            #get keypoints data  
+            human = pose['result'][0]    
+            humanData = human['keypoints'][5:].view(1,POSE_JOINT_SIZE)
             
-            # only predict the fall down action if the seqeunce lenght is 5
-            if frameIdx==n_frames:
-               
-                with torch.no_grad():
-                    # load classifier model
-                    pose_predictor.load_model()
-                    # predict fall down action
-                    actres = pose_predictor.predict_action(humanData)
-                    actres = actres.cpu().numpy().reshape(-1)
-                    #print(actres)
-                    predictions = np.argmax(actres)
-                    #print(predictions)
-                    #get confidence and fall down class name
-                    confidence = round(actres[predictions],3)
-                    action_name = tagI2W[predictions]
-                    print("Confidence: {},Action_Name:{}".format(confidence, action_name))
-                    frame = vis_frame(frame, pose, args)   # visulize the pose result
-                    # render predicted class names on video frames 
-                    if action_name=='Fall':
-                        frame_new =  cv2.putText(frame, text='Falling', org=(340, 20),
-                            fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 0, 0), thickness=2)
-                                        
-                    elif action_name=='Stand':
-                        frame_new =  cv2.putText(frame, text='Standing', org=(340, 20),
-                            fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0), thickness=2)
-                    
-                    elif action_name=='Tie':
-                        frame =  cv2.putText(frame, text='Tying', org=(340, 20),
-                            fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0), thickness=2)
+            #predict the fall down action 
+            with torch.no_grad():
+                # load classifier model
+                pose_predictor.load_model()
+                # predict fall down action
+                actres = pose_predictor.predict_action(humanData)
+                actres = actres.cpu().numpy().reshape(-1)
+                #print(actres)
+                predictions = np.argmax(actres)
+                #print(predictions)
+                #get confidence and fall down class name
+                confidence = round(actres[predictions],3)
+                action_name = tagI2W[predictions]
+                print("Confidence: {},Action_Name:{}".format(confidence, action_name))
+                frame = vis_frame(frame, pose, args)   # visulize the pose result
+                
+                # render predicted class names on video frames 
+                if action_name=='Fall':
+                    frame_new =  cv2.putText(frame, text='Falling', org=(340, 20),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 0, 0), thickness=2)
+                                    
+                elif action_name=='Stand':
+                    frame_new =  cv2.putText(frame, text='Standing', org=(340, 20),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0), thickness=2)
+                
+                elif action_name=='Tie':
+                    frame =  cv2.putText(frame, text='Tying', org=(340, 20),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0), thickness=2)
 
-                    frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
-                                        org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                            fontScale=0.75, color=(255,255,255), thickness=2)
-                    
-                    frame_new = frame_new[:, :, ::-1]
-                    fps_time = time.time()
-                    humanData[:n_frames-1] = humanData[1:n_frames]
-                    frameIdx=n_frames
+                frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
+                                    org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                        fontScale=0.75, color=(255,255,255), thickness=2)
 
-                    #set opencv window attributes
-                    window_name = "Fall Detection Window" 
-                    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow(window_name,720,512)
-                    # Show Frame.
-                    cv2.imshow(window_name, frame_new)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
+                frame_new = frame_new[:, :, ::-1]
+                fps_time = time.time()
+                #humanData[:n_frames-1] = humanData[1:n_frames]
+                #frameIdx=n_frames
+                
+                #set opencv window attributes
+                window_name = "Fall Detection Window" 
+                cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+                cv2.resizeWindow(window_name,720,512)
+                # Show Frame.
+                cv2.imshow(window_name, frame_new)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
-                    dim = (int(frame_width),int(frame_height))
-                    frame_new = cv2.resize(frame_new,dim , interpolation = cv2.INTER_AREA)
-                    out.write(frame_new.astype('uint8'))
+                dim = (int(frame_width),int(frame_height))
+                frame_new = cv2.resize(frame_new,dim , interpolation = cv2.INTER_AREA)
+                out.write(frame_new.astype('uint8'))
         else:
             break
     # Clear resource.

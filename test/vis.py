@@ -4,8 +4,6 @@ import time
 import cv2
 import numpy as np
 import torch
-import sys
-sys.path.append('/home/rasho/Falling-Person-Detection-based-On-AlphaPose')
 
 RED = (0, 0, 255)
 GREEN = (0, 255, 0)
@@ -128,8 +126,8 @@ def vis_frame_fast(frame, im_res, opt, format='coco'):
         if kp_num == 17:
             kp_preds = torch.cat((kp_preds, torch.unsqueeze((kp_preds[5, :] + kp_preds[6, :]) / 2, 0)))
             kp_scores = torch.cat((kp_scores, torch.unsqueeze((kp_scores[5, :] + kp_scores[6, :]) / 2, 0)))
-        #if opt.pose_track or opt.tracking:
-        #color = get_color_fast(int(abs(human['idx'])))
+        if opt.pose_track or opt.tracking:
+            color = get_color_fast(int(abs(human['idx'])))
         else:
             color = BLUE
 
@@ -137,6 +135,7 @@ def vis_frame_fast(frame, im_res, opt, format='coco'):
         if opt.showbox:
             if 'box' in human.keys():
                 bbox = human['box']
+                bbox = [bbox[0], bbox[0]+bbox[2], bbox[1], bbox[1]+bbox[3]]#xmin,xmax,ymin,ymax
             else:
                 from trackers.PoseFlow.poseflow_infer import get_box
                 keypoints = []
@@ -150,16 +149,17 @@ def vis_frame_fast(frame, im_res, opt, format='coco'):
             if opt.tracking:
                 cv2.putText(img, str(human['idx']), (int(bbox[0]), int((bbox[2] + 26))), DEFAULT_FONT, 1, BLACK, 2)
         # Draw keypoints
+        vis_thres = 0.05 if kp_num == 136 else 0.4
         for n in range(kp_scores.shape[0]):
-            if kp_scores[n] <= 0.4:
+            if kp_scores[n] <= vis_thres:
                 continue
             cor_x, cor_y = int(kp_preds[n, 0]), int(kp_preds[n, 1])
             part_line[n] = (cor_x, cor_y)
             if n < len(p_color):
-                #if opt.tracking:
-                #cv2.circle(img, (cor_x, cor_y), 3, color, -1)
-                #else:
-                cv2.circle(img, (cor_x, cor_y), 3, p_color[n], -1)
+                if opt.tracking:
+                    cv2.circle(img, (cor_x, cor_y), 3, color, -1)
+                else:
+                    cv2.circle(img, (cor_x, cor_y), 3, p_color[n], -1)
             else:
                 cv2.circle(img, (cor_x, cor_y), 1, (255,255,255), 2)
         # Draw limbs
@@ -168,10 +168,10 @@ def vis_frame_fast(frame, im_res, opt, format='coco'):
                 start_xy = part_line[start_p]
                 end_xy = part_line[end_p]
                 if i < len(line_color):
-                    #if opt.tracking:
-                    #cv2.line(img, start_xy, end_xy, color, 2 * int(kp_scores[start_p] + kp_scores[end_p]) + 1)
-                    #else:
-                    cv2.line(img, start_xy, end_xy, line_color[i], 2 * int(kp_scores[start_p] + kp_scores[end_p]) + 1)
+                    if opt.tracking:
+                        cv2.line(img, start_xy, end_xy, color, 2 * int(kp_scores[start_p] + kp_scores[end_p]) + 1)
+                    else:
+                        cv2.line(img, start_xy, end_xy, line_color[i], 2 * int(kp_scores[start_p] + kp_scores[end_p]) + 1)
                 else:
                     cv2.line(img, start_xy, end_xy, (255,255,255), 1)  
 
@@ -277,8 +277,8 @@ def vis_frame(frame, im_res, opt, format='coco'):
             kp_scores = torch.cat((kp_scores, torch.unsqueeze((kp_scores[5, :] + kp_scores[6, :]) / 2, 0)))
         #if opt.tracking:
         #color = get_color_fast(int(abs(human['idx'])))
-        else:
-            color = BLUE
+        #else:
+        color = BLUE
 
         # Draw bboxes
         if opt.showbox:
@@ -299,8 +299,9 @@ def vis_frame(frame, im_res, opt, format='coco'):
                 cv2.putText(img, str(human['idx']), (int(bbox[0]), int((bbox[2] + 26))), DEFAULT_FONT, 1, BLACK, 2)
 
         # Draw keypoints
+        vis_thres = 0.05 if kp_num == 136 else 0.4
         for n in range(kp_scores.shape[0]):
-            if kp_scores[n] <= 0.4:
+            if kp_scores[n] <= vis_thres:
                 continue
             cor_x, cor_y = int(kp_preds[n, 0]), int(kp_preds[n, 1])
             part_line[n] = (int(cor_x), int(cor_y))
@@ -313,7 +314,10 @@ def vis_frame(frame, im_res, opt, format='coco'):
             else:
                 cv2.circle(bg, (int(cor_x), int(cor_y)), 1, (255,255,255), 2)
             # Now create a mask of logo and create its inverse mask also
-            transparency = float(max(0, min(1, kp_scores[n])))
+            if n < len(p_color):
+                transparency = float(max(0, min(1, kp_scores[n])))
+            else:
+                transparency = float(max(0, min(1, kp_scores[n]*2)))
             img = cv2.addWeighted(bg, transparency, img, 1 - transparency, 0)
         # Draw limbs
         for i, (start_p, end_p) in enumerate(l_pair):
@@ -337,7 +341,12 @@ def vis_frame(frame, im_res, opt, format='coco'):
                     cv2.fillConvexPoly(bg, polygon, line_color[i])
                 else:
                     cv2.line(bg, start_xy, end_xy, (255,255,255), 1)
-                transparency = float(max(0, min(1, 0.5 * (kp_scores[start_p] + kp_scores[end_p])-0.1)))
+                if n < len(p_color):
+                    transparency = float(max(0, min(1, 0.5 * (kp_scores[start_p] + kp_scores[end_p])-0.1)))
+                else:
+                    transparency = float(max(0, min(1, (kp_scores[start_p] + kp_scores[end_p]))))
+
+                #transparency = float(max(0, min(1, 0.5 * (kp_scores[start_p] + kp_scores[end_p])-0.1)))
                 img = cv2.addWeighted(bg, transparency, img, 1 - transparency, 0)
     return img
 

@@ -179,7 +179,7 @@ class dnntiny(torch.nn.Module):
         
         super().__init__()
         self.fc1 = torch.nn.Linear(input_dim,120)
-        print('fc1',self.fc1)
+        #print('fc1',self.fc1)
         self.bn1 = torch.nn.BatchNorm1d(120)
         self.fc2 = torch.nn.Linear(120, 64)
         self.bn2 = torch.nn.BatchNorm1d(64)
@@ -189,9 +189,9 @@ class dnntiny(torch.nn.Module):
         self.class_num = class_num
       
     def forward(self, _input):
-        print('input', _input.shape)
+        #print('input', _input.shape)
         _fc1 = F.relu(self.fc1(_input))
-        print('fc1:res',_fc1.shape)
+        #print('fc1:res',_fc1.shape)
         _bn1 = self.bn1(_fc1)
         _fc2 = F.relu(self.fc2(_bn1))
         _bn2 = self.bn2(_fc2)
