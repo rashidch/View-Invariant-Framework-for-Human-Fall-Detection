@@ -11,8 +11,6 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 	* [Folder Structure](#folder-structure)
 	* [Usage](#usage)
 		* [Config file format](#config-file-format)
-		* [Using config files](#using-config-files)
-		* [Resuming from checkpoints](#resuming-from-checkpoints)
     * [Using Multiple GPU](#using-multiple-gpu)
 	* [Customization](#customization)
 		* [Custom CLI options](#custom-cli-options)
