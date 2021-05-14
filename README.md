@@ -35,8 +35,8 @@ Falling person detection inside elevator based on AlphaPose Estimation (Human bo
 ## Requirements
 * Python >= 3.5 (3.7 recommended)
 * PyTorch >= 0.4 (1.2 recommended)
-* See alphapose [readme]:https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/tree/main/source 
-	and [installation docs]:https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/blob/main/source/docs/INSTALL.md for complete requirements
+* See alphapose [readme](https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/tree/main/source) 
+	and [installation docs](https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/blob/main/source/docs/INSTALL.md) for complete requirements
 * [arbitrary case-insensitive reference text]: https://www.mozilla.org  
 
 ## Features
