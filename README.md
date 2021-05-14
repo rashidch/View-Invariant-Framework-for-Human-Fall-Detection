@@ -122,5 +122,5 @@ This project is licensed under the MIT License. See  LICENSE for more details
 
 
 ## Acknowledgements
-This project is developed based on Alphapose [codebase](https://github.com/MVIG-SJTU/AlphaPose)
+This project is developed based on Alphapose [codebase](https://github.com/MVIG-SJTU/AlphaPose).
 
