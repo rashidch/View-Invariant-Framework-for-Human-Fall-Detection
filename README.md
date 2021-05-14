@@ -32,12 +32,6 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 
 <!-- /code_chunk_output -->
 
-## Requirements
-* Python >= 3.5 (3.7 recommended)
-* PyTorch >= 0.4 (1.2 recommended)
-* See alphapose [readme](https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/tree/main/source) 
-	and [installation docs](https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/blob/main/source/docs/INSTALL.md) for complete requirements
-* [arbitrary case-insensitive reference text]: https://www.mozilla.org  
 
 ## Features
 * Clear folder structure which is suitable for many deep learning projects.
@@ -92,7 +86,13 @@ A PyTorch implementation for Falling person detection inside elevator based on A
       ├── cut_frames.py
       └── video2images.py
   ```
-
+## Requirements
+* Python >= 3.5 (3.7 recommended)
+* PyTorch >= 0.4 (1.2 recommended)
+* See alphapose [readme](https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/tree/main/source) 
+	and [installation docs](https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/blob/main/source/docs/INSTALL.md) for complete requirements
+* After complete installation including Alphapose cd root directory (Flling-Person-Detection-based-On-AlphaPos) and follow commanda in usage section to xtract sekelton data, tr
+	
 ## Usage
 The code in this repo is an MNIST example of the template.
 Try `python train.py -c config.json` to run code.
