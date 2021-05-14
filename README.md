@@ -105,7 +105,9 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 * [Fall classfication models Config files ](https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/tree/main/test/classifier_config)
 * Add addional configurations if you need.
 
-## Inference results 
+## Inference results
+   * Inference on custom Elevator Fall Dataset
+   
 	
 	
 
