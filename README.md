@@ -35,18 +35,15 @@ Falling person detection inside elevator based on AlphaPose Estimation (Human bo
 ## Requirements
 * Python >= 3.5 (3.7 recommended)
 * PyTorch >= 0.4 (1.2 recommended)
-* tqdm (Optional for `test.py`)
-* tensorboard >= 1.14 (see [Tensorboard Visualization](#tensorboard-visualization))
+* See alphapose [readme]:https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/tree/main/source 
+	and [installation docs]:https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/blob/main/source/docs/INSTALL.md for complete requirements
+* [arbitrary case-insensitive reference text]: https://www.mozilla.org  
 
 ## Features
 * Clear folder structure which is suitable for many deep learning projects.
 * `.json` config file support for convenient parameter tuning.
 * Customizable command line options for more convenient parameter tuning.
 * Checkpoint saving and resuming.
-* Abstract base classes for faster development:
-  * `BaseTrainer` handles checkpoint saving/resuming, training process logging, and more.
-  * `BaseDataLoader` handles batch generation, data shuffling, and validation data splitting.
-  * `BaseModel` provides basic model summary.
 
 ## Folder Structure
   ```
@@ -57,6 +54,9 @@ Falling person detection inside elevator based on AlphaPose Estimation (Human bo
   |    ├──  train_ae.py - script to start auto encoder training
   |    ├──  train_aelstm.py - script to start auto encode plus lstm training
   |    ├──  train_lstm.py - script to start lstm training
+  |    ├──  dataloader.py - skeleton dataloader
+  |    ├──  plot_statics.py - plot training stats 
+  |
   ├── test/ contains  scripts to inference trained models on videos and image data
   |    ├── main.py - main script to run inference on video data
   |
@@ -64,39 +64,33 @@ Falling person detection inside elevator based on AlphaPose Estimation (Human bo
   |    ├── check alphapose source readme for getting started
   |    ├── check alaphapose docs folder for installation 
   │
-  ├── new_project.py - initialize new project with template files
   │
-  ├── base/ - abstract base classes
-  │   ├── base_data_loader.py
-  │   ├── base_model.py
-  │   └── base_trainer.py
+  ├── dataset/  - contains skeleton data extracted from alphapose estimator 
+  │   └── DataCSV
+  |    └── DataPrepare 
+  |    └── SkeletonData
   │
-  ├── data_loader/ - anything about data loading goes here
-  │   └── data_loaders.py
+  ├── input/ - default directory for storing image and video datasets
+  |	└── multicam_dataset - these are used as input to pose estimator for extracting skeleton data
+  |	└── Falling_Standing
+  |	└── Falling_Standing_2
   │
-  ├── data/ - default directory for storing input data
-  │
+  ├── examples - contains test video for inferece 
+  |
   ├── fallmodels/ - fall classification models package
   │   ├── model.py
-  │   
-  │  
+  │     
   │
   ├── checkpoints/ fall classification models checkpoints
   │   ├── dnntiny/ - trained models are saved here
   |          ├── epoch_210_loss_0.031925.pth
-  │ 
   │
-  ├── trainer/ - trainers
-  │   └── trainer.py
-  │
-  ├── logger/ - module for tensorboard visualization and logging
-  │   ├── visualization.py
-  │   ├── logger.py
-  │   └── logger_config.json
+  ├── plots/ - module for tensorboard visualization and logging
+  │   
   │  
   └── tools/ - small utility functions
-      ├── util.py
-      └── ...
+      ├── cut_frames.py
+      └── video2images.py
   ```
 
 ## Usage
