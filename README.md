@@ -107,10 +107,10 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 
 ## Inference results
    * Inference on custom Elevator Fall Dataset
-   ### Falling Person
-   <p align='center'>
-      <img src="docs/crowdpose.gif", width="360">
-   </p>
+   * Falling Person
+   	<p align='center'>
+      	<img src="docs/crowdpose.gif", width="360">
+   	</p>
    
 	
 	
