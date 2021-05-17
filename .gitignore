@@ -141,6 +141,7 @@ dmypy.json
 *.txt
 *.csv
 *.pickle
+*.json
 <<<<<<< HEAD
 <<<<<<< HEAD
 *.weights

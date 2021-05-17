@@ -13,6 +13,7 @@ execResjson = "find -type f -iname 'taoyuan.json' "
 alphaI2W = ["LShoulder","RShoulder", "LElbow","RElbow",\
 "LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
 
+
 #alphaI2W = ["Nose", "Neck", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist", "RHip",\
 #           "RKnee", "RAnkle", "LHip", "LKnee","LAnkle", "REye", "LEye", "REar","LEar"]
 @logger.catch
