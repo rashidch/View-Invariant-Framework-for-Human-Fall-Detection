@@ -106,9 +106,8 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 * Add addional configurations if you need.
 
 ## Inference results
-   ### Falling Demo 
-   ### Standing Demo
-   <p align='right'>
+   ### Falling and Standing Demo 
+   <p align='center'>
    <img src="/outputs/dnntiny/falling.gif", width="360">  
    <img src="/outputs/dnntiny/standing.gif", width="360">
    </p>
