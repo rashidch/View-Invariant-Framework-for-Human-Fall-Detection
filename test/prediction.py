@@ -2,7 +2,7 @@ from time import process_time
 import numpy as np
 import torch
 from easydict import EasyDict as edict
-from fallModels.F import normalize_min_
+from fallModels.normalize import normalize_min_
 from fallModels.models import get_model
 from test.classifier_config.apis import get_classifier_cfg
 from test.detection_loader import DetectionLoader

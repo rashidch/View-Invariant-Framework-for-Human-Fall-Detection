@@ -11,7 +11,7 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 	* [Folder Structure](#folder-structure)
 	* [Usage](#usage)
 		* [Config file format](#config-file-format)
-    * [Fall Detection Results](#Inference)
+    * [Fall Detection Results](#Inference-results)
       * Results on Custom Elevator Fall Detection Datatset
       * Results on Benchmark Datasets 
         * Le2i
@@ -105,7 +105,15 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 * [Fall classfication models Config files ](https://github.com/rashidch/Falling-Person-Detection-based-On-AlphaPose/tree/main/test/classifier_config)
 * Add addional configurations if you need.
 
-
+## Inference results
+   ### Falling and Standing Demo on Custom Dataset
+   <p align='center'>
+   <img src="/outputs/dnntiny/falling.gif", width="360">  
+   <img src="/outputs/dnntiny/standing.gif", width="360">
+   </p>
+   
+	
+	
 
 ## Contribution
 Feel free to contribute any kind of function or enhancement, here the coding style follows PEP8
