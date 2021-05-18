@@ -86,7 +86,7 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 
 <p align='center'>
    <img src="/outputs/1.png", width="360">  
-   </p>
+ </p>
 	
 ## Usage
 
