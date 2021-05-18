@@ -94,13 +94,16 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 	
 ## Usage
 
-* Extract skeleton data:
+* Extract 2d skeleton data:
   ```
   python dataset/dataPrepare/get_keypoints.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint source/pretrained_models/fast_res50_256x192.pth --indir input/Falling_Standing_2 --outdir frames --save_img --qsize 50
   ```
   <p align='center'>
    <img src="/outputs/1_PUhxNG8HKGvaquMtFjtuLpRfGJwb_mF">
    </p>
+
+* Uplift 2d skeleton to 3d Skeleton :
+  - This module is developed by our team member Ivan. Available here: https://github.com/alexivaner/3d_pose_baseline_pytorch_Alpha_Pose 
 * Train fall classification models
   ```
   python train/train_dnn.py
