@@ -85,7 +85,7 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 * After complete installation including Alphapose cd to root directory (Falling-Person-Detection-based-On-AlphaPos) and follow commands in usage section to extract sekelton data, run train and inference on videos
 
 <p align='center'>
-   <img src="/outputs/dnntiny/1.png", width="360">  
+   <img src="/outputs/1.png", width="360">  
    </p>
 	
 ## Usage
@@ -95,7 +95,7 @@ A PyTorch implementation for Falling person detection inside elevator based on A
   python dataset/dataPrepare/get_keypoints.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint source/pretrained_models/fast_res50_256x192.pth --indir input/Falling_Standing_2 --outdir frames --save_img --qsize 50
   ```
   <p align='center'>
-   <img src="/outputs/dnntiny/2.png", width="360">
+   <img src="/outputs/2.png", width="360">
    </p>
 * Train fall classification models
   ```
