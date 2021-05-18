@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
-from fallModels.models import dnntiny
+from fallModels.models import Net, dnntiny
 from dataloader import SinglePose2dDataset, SinglePose3dDataset
 from plot_statics import plot_Statistics
 
@@ -24,7 +24,7 @@ class trainDNN():
 
     #training function
     @staticmethod
-    def train(model, dataloaders, dataset_sizes, num_epochs=3000):
+    def train(model, dataloader, dataset_size, dataloader3d, dataset3d_size, num_epochs=3000):
     
         history = defaultdict(list)
         # define the optimization
@@ -58,11 +58,22 @@ class trainDNN():
                 pred_tensor  = torch.zeros(0,dtype=torch.long, device='cpu')
                 class_tensor = torch.zeros(0,dtype=torch.long, device='cpu')
                 
-                # enumerate over mini_batch
-                for i, (inputs, targets)  in enumerate(dataloaders[phase]):
-                    inputs  = inputs.to(device)
-                    targets = targets.to(device)
+                # iterate over two dataloaders simultaneously
+                dataloader_iterator = iter(dataloader[phase])
+                for i, (inputs2, targets2)  in enumerate(dataloader3d[phase]):
+
+
+                    inputs2  = inputs2.to(device)
+                    targets2 = targets2.to(device)
+                    try:
+                        inputs1, targets1 = next(dataloader_iterator)
+                    except StopIteration:
+                        dataloader_iterator = iter(dataloader[phase])
+                        inputs1, targets1 = next(dataloader_iterator)
                     
+                    inputs1  = inputs1.to(device)
+                    targets1 = targets1.to(device)
+
                     # clear the parameter gradients
                     optimizer.zero_grad()
                     
@@ -71,34 +82,39 @@ class trainDNN():
                     with torch.set_grad_enabled(phase=='train'):
                         
                         # compute model outputs
-                        raw_preds , class_probs = model(inputs)
+                        #print(targets1, targets2)
+                        raw_preds1,raw_preds2,raw_preds3,class_probs = model(inputs1, inputs2)
                         
                         # calculate outputs
                         _, preds = torch.max(class_probs, dim=1)
                         
                         # calculate the loss
-                        loss = criterion(raw_preds, targets)
+                        loss1 = criterion(raw_preds1, targets1)
+                        loss2 = criterion(raw_preds2, targets2)
+                        loss3 = criterion(raw_preds3, targets2)
+                        loss = loss1+loss2+loss3
                         
                         # backward + optimize only ig in training phase
                         if phase == 'train':
                             # calculate gradient
-                            loss.backward()
-                        
+                            loss1.backward(retain_graph=True)
+                            loss2.backward(retain_graph=True)
+                            loss3.backward(retain_graph=True)
                             # update model weights
                             optimizer.step()
                     
                     #statistics
-                    running_loss += loss.item() * inputs.size(0)
-                    running_corrects += torch.sum(preds==targets)
+                    running_loss += loss.item() * inputs2.size(0)
+                    running_corrects += torch.sum(preds==targets2)
                     
                     # Append batch prediction results
                     pred_tensor = torch.cat([pred_tensor,preds.view(-1).cpu()])
-                    class_tensor  = torch.cat([class_tensor,targets.view(-1).cpu()])
+                    class_tensor  = torch.cat([class_tensor,targets2.view(-1).cpu()])
                     
                 
                 #epoch loss and accuracy
-                epoch_loss = running_loss / dataset_sizes[phase]
-                epoch_acc  = running_corrects.double() / dataset_sizes[phase]
+                epoch_loss = running_loss / dataset3d_size[phase]
+                epoch_acc  = running_corrects.double() / dataset3d_size[phase]
                 history[phase].append((epoch_loss, epoch_acc, ))
                 
                 if phase=='valid':
@@ -125,7 +141,7 @@ class trainDNN():
                     loss_  = epoch_loss
                     conf_valid = conf_mat
                     #best_model_wts = copy.deepcopy(model.state_dict())
-                    trainDNN.save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints/dnntiny_'+currTime)
+                    trainDNN.save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints/dnn2d3d_'+currTime)
                 
                 if phase== 'train' and epoch_acc>best_acc:
                     conf_train = conf_mat
@@ -158,13 +174,14 @@ class trainDNN():
 
 if __name__ == '__main__':
 
-    DNN_model   = dnntiny(input_dim=34, class_num=2).to(device)
+    DNN_model   = Net(class_num=2, input2d=34, input3d=51, ).to(device)
     #get test dataloaders
-    dataloaders, dataset_sizes = SinglePose2dDataset.get2dData(reshape=False, bs=16,n_frames=1)
-    #dataloader3d, dataset3d_sizes = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
-    #print(dataloader, dataset_sizes)
-    #print(dataloader3d, dataset3d_sizes)
+    dataloader, dataset_size = SinglePose2dDataset.get2dData(reshape=False, bs=16,n_frames=1)
+    dataloader3d, dataset3d_size = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
+    print(dir(dataloader['train']), dataset_size)
+    print(dir(dataloader3d['train']), dataset3d_size)
     #train the model
-    history, model, conf_train, conf_valid = trainDNN.train(DNN_model, dataloaders, dataset_sizes, num_epochs=500)
+    history, model, conf_train, conf_valid = trainDNN.train(DNN_model, dataloader, dataset_size, 
+    dataloader3d, dataset3d_size, num_epochs=500)
     #plot the model statistics 
     #plot_Statistics(history,conf_train, conf_valid,name='dnntiny')

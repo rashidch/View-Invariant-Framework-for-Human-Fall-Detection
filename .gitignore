@@ -155,6 +155,7 @@ dmypy.json
 #data folders
 frames_output/
 examples/
+3dsource/
 sis_fall/
 realistic-fall-dataset/
 multicam_dataset/
