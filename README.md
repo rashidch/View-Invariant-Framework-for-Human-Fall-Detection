@@ -1,6 +1,10 @@
 # Falling-Person-Detection-based-On-AlphaPose
 A PyTorch implementation for Falling person detection inside elevator based on AlphaPose Estimation (Human body keypoints detection)
 
+<p align='center'>
+   <img src="/outputs/1Pv8rCTwH9rqhPYKDbQ1U-NvEWYVlqvUw", width="360">  
+ </p>
+	
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
