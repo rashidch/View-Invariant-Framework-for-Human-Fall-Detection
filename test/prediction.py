@@ -27,7 +27,7 @@ class classifier():
 
 
     def load_model(self):
-        self.model = get_model(self.cfg.MODEL,self.cfg.tagI2W, n_frames=self.n_frames,POSE_JOINT_SIZE =self.POSE_JOINT_SIZE )
+        self.model = get_model(self.cfg.MODEL,self.cfg.tagI2W, n_frames=self.n_frames,POSE_JOINT_SIZE =self.POSE_JOINT_SIZE, pose3d=51)
         ckpt  = torch.load(self.cfg.CHEKPT, map_location=self.opt.device)
         self.model.load_state_dict(ckpt['model_state_dict'])
         self.model.to(self.opt.device)
@@ -36,7 +36,8 @@ class classifier():
     def predict_action(self, keypoints):
         points = keypoints.numpy()
         points = normalize_min_(points)
-        if self.cfg.MODEL[:3]=='dnn':
+        #if self.cfg.MODEL[:3]=='dnn':
+        if self.cfg.MODEL[:3]=='net':
             points = points.reshape(1,self.POSE_JOINT_SIZE)
         else:
             points = points.reshape(1,self.n_frames,self.POSE_JOINT_SIZE)
