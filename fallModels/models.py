@@ -6,28 +6,27 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 
-def get_model(name,tagI2W, n_frames=5, POSE_JOINT_SIZE=34, pose3d=51):
-    if(name == 'Net'):
-        print("loaded Net model")
-        return Net(POSE_JOINT_SIZE,pose3d, len(tagI2W))
+def get_model(name,tagI2W, n_frames=5, pose2d_size=34, pose3d=51):
+    if(name =='net'):
+        #print("loaded Net model")
+        return Net(pose2d_size,pose3d, len(tagI2W))
     elif(name == 'dnntiny'):
         print("loaded dnntiny model")
-        return dnntiny(input_dim=POSE_JOINT_SIZE*n_frames, class_num=len(tagI2W))
+        return dnntiny(input_dim=pose2d_size*n_frames, class_num=len(tagI2W))
     elif(name == 'FallModel'):
         print("loaded FallModel model")
-        return FallModel(input_dim=POSE_JOINT_SIZE, class_num=len(tagI2W))
+        return FallModel(input_dim=pose2d_size, class_num=len(tagI2W))
     elif(name == 'FallNet'):
         print("loaded FallNet model")
-        return FallNet(input_dim=POSE_JOINT_SIZE, class_num=len(tagI2W))
+        return FallNet(input_dim=pose2d_size, class_num=len(tagI2W))
     elif(name == 'DNN'):
         print("loaded DNN model")
-        return DNN(input_dim=POSE_JOINT_SIZE*n_frames, class_num=len(tagI2W))
+        return DNN(input_dim=pose2d_size*n_frames, class_num=len(tagI2W))
 #dnn block
 class block(nn.Module):
     def __init__(self,input_size):
         super(block,self).__init__()
         self.hidden = 1024
-        print('Create Block with input:',input_size)
         self.fc1 = nn.Linear(input_size, self.hidden)
         self.bn1 = nn.BatchNorm1d(self.hidden)
         self.fc2 = nn.Linear(self.hidden,self.hidden)
@@ -55,7 +54,7 @@ class dnn(nn.Module):
         return x_3
 
 class Net(nn.Module):
-    def __init__(self, class_num, input2d=34,input3d=51):
+    def __init__(self,input2d,input3d,class_num):
         super(Net,self).__init__()
         self.hidden = 1024
         self.dnn2d = dnn(input2d)
@@ -75,9 +74,10 @@ class Net(nn.Module):
         output = F.softmax(_fc_cls, dim=1)
         return out1, out2, _fc_cls, output
     
-    def exe(self,input_,device,holder):
-        input_ = torch.Tensor(input_).to(device)
-        return self.__call__(input_) # data,datalen
+    def exe(self,input1_,input2_,device,holder):
+        input1_ = torch.Tensor(input1_).to(device)
+        input2_ = torch.Tensor(input2_).to(device)
+        return self.__call__(input1_,input2_) # data,datalen
 
 
 class dnntiny(torch.nn.Module):

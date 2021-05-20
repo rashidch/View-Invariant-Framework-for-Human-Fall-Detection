@@ -148,15 +148,15 @@ def create_datatest(data):
 # Load Model
 model_path='source3d/checkpoint/test/ckpt_best.pth.tar'
 # create model
-print(">>> creating model")
+#print(">>> creating 3D model")
 model = LinearModel()
 model = model.cuda()
 model.apply(weight_init)
-print(">>> total params: {:.2f}M".format(sum(p.numel() for p in model.parameters()) / 1000000.0))
+#print(">>> total params: {:.2f}M".format(sum(p.numel() for p in model.parameters()) / 1000000.0))
 criterion = nn.MSELoss(size_average=True).cuda()
 optimizer = torch.optim.Adam(model.parameters(), lr=1.0e-3)
 
-print(">>> loading ckpt from '{}'".format('source3d/checkpoint/test/ckpt_best.pth.tar'))
+#print(">>> loading ckpt from '{}'".format('source3d/checkpoint/test/ckpt_best.pth.tar'))
 ckpt = torch.load(model_path)
 start_epoch = ckpt['epoch']
 err_best = ckpt['err']
@@ -164,7 +164,7 @@ glob_step = ckpt['step']
 lr_now = ckpt['lr']
 model.load_state_dict(ckpt['state_dict'])
 optimizer.load_state_dict(ckpt['optimizer'])
-print(">>> ckpt loaded (epoch: {} | err: {})".format(start_epoch, err_best))
+#print(">>> ckpt loaded (epoch: {} | err: {})".format(start_epoch, err_best))
 
 new_stat_3d={}
 new_stat_3d['mean']=data_mean_3d
@@ -189,7 +189,7 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
             outputs = model(inputs)
 
         # calculate erruracy
-        print(outputs.shape)
+        #print(outputs.shape)
         outputs_unnorm = data_process.unNormalizeData(outputs.data.cpu().numpy(), stat_3d['mean'], stat_3d['std'], stat_3d['dim_use'])
 
         # remove dim ignored
@@ -202,7 +202,7 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
         if (i + 1) % 100 == 0:
             batch_time = time.time() - start
             start = time.time()
-
+    '''
         bar.suffix = '({batch}/{size}) | batch: {batchtime:.4}ms | Total: {ttl} | ETA: {eta:} | loss: {loss:.6f}' \
             .format(batch=i + 1,
                     size=len(test_loader),
@@ -212,6 +212,7 @@ def test(test_loader, model, criterion, stat_3d, procrustes=False):
                     loss=losses.avg)
         bar.next()
     bar.finish()
+    '''
     return pred_result
 
 # Combine prediction from each batch into one prediction

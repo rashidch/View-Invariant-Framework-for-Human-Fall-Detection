@@ -10,6 +10,7 @@ from test.prediction import classifier
 from test.prediction import PoseEstimation 
 from source.alphapose.utils.config import update_config
 from test.vis import vis_frame
+from test.utils import ResizePadding
 
 from test.uplift2dto3d.get3d import inferencealphaposeto3d_one
 from test.uplift2dto3d.alpha_h36m import map_alpha_to_human
@@ -39,13 +40,12 @@ parser.add_argument('--flip', default=False, action='store_true',
                     help='enable flip testing')
 parser.add_argument('--vis_fast', dest='vis_fast',
                     help='use fast rendering', action='store_true', default=False)
-parser.add_argument('--save_out', type=str, default='outputs/1.avi',
+parser.add_argument('--save_out', type=str, default='outputs/dnn2d3d/5.avi',
                         help='Save display to video file.')
 parser.add_argument('--cam', dest='inputvideo', help='video-name', 
-                    default='examples/demo/test/1.mp4') 
+                    default='examples/demo/test/5.avi') 
 
-"""-----------------------------Classifier Options----------------------------"""
-parser.add_argument('--classifier', dest='classmodel', type=str, default='dnntiny',
+parser.add_argument('--classifier', dest='classmodel', type=str, default='net',
                     help='choose classifer model, defualt dnn model')
 
 args = parser.parse_args()
@@ -54,28 +54,7 @@ cfg  = update_config(args.cfg)
 args.gpus = [int(args.gpus[0])] if torch.cuda.device_count() >= 1 else [-1]
 args.device = torch.device("cuda:" + str(args.gpus[0]) if args.gpus[0] >= 0 else "cpu")
 
-
-def ResizePadding(image, height, width):
-    desired_size = (height, width)
-    old_size = image.shape[:2]
-    max_size_idx = old_size.index(max(old_size))
-    ratio = float(desired_size[max_size_idx]) / max(old_size)
-    new_size = tuple([int(x * ratio) for x in old_size])
-
-    if new_size > desired_size:
-        min_size_idx = old_size.index(min(old_size))
-        ratio = float(desired_size[min_size_idx]) / min(old_size)
-        new_size = tuple([int(x * ratio) for x in old_size])
-
-    image = cv2.resize(image, (new_size[1], new_size[0]))
-    delta_w = desired_size[1] - new_size[1]
-    delta_h = desired_size[0] - new_size[0]
-    top, bottom = delta_h // 2, delta_h - (delta_h // 2)
-    left, right = delta_w // 2, delta_w - (delta_w // 2)
-
-    image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT)
-    return image
-    
+'''
 def predict_frame():
 
     tagI2W = ["Fall","Stand"]
@@ -96,12 +75,12 @@ def predict_frame():
     
     n_frames = 1
     fps_time = 0
-    POSE_JOINT_SIZE = 24    
-    humanData = torch.zeros([n_frames, POSE_JOINT_SIZE])
+    pose2d_size = 24    
+    humanData = torch.zeros([n_frames, pose2d_size])
     
     # create objects of pose esimator and classifier class
     pose_estimator = PoseEstimation(args, cfg) 
-    pose_predictor = classifier(args, n_frames, POSE_JOINT_SIZE)
+    pose_predictor = classifier(args, n_frames, pose2d_size)
     frameIdx=0
     while (cap.isOpened()):
        
@@ -123,7 +102,7 @@ def predict_frame():
             # merge the body keypints of (N=5) frames to create a sequence of body keypoints  
             if frameIdx!=n_frames:
                 human = pose['result'][0]    
-                humanData[frameIdx] = human['keypoints'][5:].view(1,POSE_JOINT_SIZE)
+                humanData[frameIdx] = human['keypoints'][5:].view(1,pose2d_size)
                 frameIdx+=1
             
             # only predict the fall down action if the seqeunce lenght is 5
@@ -204,12 +183,12 @@ def predict2d_frame():
     
     n_frames = 1
     fps_time = 0
-    POSE_JOINT_SIZE = 34    
-    humanData = torch.zeros([n_frames, POSE_JOINT_SIZE])
+    pose2d_size = 34    
+    humanData = torch.zeros([n_frames, pose2d_size])
     
     # create objects of pose esimator and classifier class
     pose_estimator = PoseEstimation(args, cfg) 
-    pose_predictor = classifier(args, n_frames, POSE_JOINT_SIZE)
+    pose_predictor = classifier(args, n_frames, pose2d_size)
     frameIdx=0
     while (cap.isOpened()):
        
@@ -236,7 +215,7 @@ def predict2d_frame():
             # merge the body keypints of (N=5) frames to create a sequence of body keypoints  
             if frameIdx!=n_frames:
                 human = pose['result'][0]    
-                humanData[frameIdx] = human2d.view(1,POSE_JOINT_SIZE)
+                humanData[frameIdx] = human2d.view(1,pose2d_size)
                 frameIdx+=1
             
             # only predict the fall down action if the seqeunce lenght is 5
@@ -296,10 +275,10 @@ def predict2d_frame():
     cap.release()
     out.release()
     cv2.destroyAllWindows()
-
+'''
 def predict2d3d_frame():
 
-    tagI2W = ["Fall","Stand", "Tie"]
+    tagI2W = ["Fall","Stand"]
     cam_source = args.inputvideo
 
     if type(cam_source) is str and os.path.isfile(cam_source):
@@ -317,13 +296,14 @@ def predict2d3d_frame():
     
     n_frames = 1
     fps_time = 0
-    POSE_JOINT_SIZE = 34
-    pose3d = 51    
-    humanData = torch.zeros([n_frames, POSE_JOINT_SIZE])
+    pose2d_size = 34
+    pose3d_size= 51    
+    humanData = np.zeros([n_frames, pose2d_size])
+    humanData3d = np.zeros([n_frames, pose3d_size])
     
     # create objects of pose esimator and classifier class
     pose_estimator = PoseEstimation(args, cfg) 
-    pose_predictor = classifier(args, n_frames, POSE_JOINT_SIZE)
+    pose_predictor = classifier(args, n_frames, pose2d_size, pose3d_size)
     frameIdx=0
     while (cap.isOpened()):
        
@@ -336,15 +316,18 @@ def predict2d3d_frame():
             image = frame.copy()
             # get the body keypoints for current frame 
             pose = pose_estimator.process(im_name, image)
-            
             if pose==None:
                 #cv2.imshow(window_name, image)
                 continue
+            # convert 2d pose to 3d
+            _pose =pose['result'][0]['keypoints'].cpu().numpy().reshape(pose2d_size,)
+            human3d,human2d = inferencealphaposeto3d_one(_pose, input_type="array")
             
             # merge the body keypints of (N=5) frames to create a sequence of body keypoints  
             if frameIdx!=n_frames:
                 human = pose['result'][0]    
-                humanData[frameIdx] = human['keypoints'][5:].view(1,POSE_JOINT_SIZE)
+                humanData[frameIdx] = human2d.reshape(1,pose2d_size)
+                humanData3d[frameIdx] = human3d.reshape(1,pose3d_size)
                 frameIdx+=1
             
             # only predict the fall down action if the seqeunce lenght is 5
@@ -354,7 +337,7 @@ def predict2d3d_frame():
                     # load classifier model
                     pose_predictor.load_model()
                     # predict fall down action
-                    actres = pose_predictor.predict_action(humanData)
+                    actres = pose_predictor.predict_2d3d(humanData, humanData3d)
                     actres = actres.cpu().numpy().reshape(-1)
                     #print(actres)
                     predictions = np.argmax(actres)
@@ -362,7 +345,7 @@ def predict2d3d_frame():
                     #get confidence and fall down class name
                     confidence = round(actres[predictions],3)
                     action_name = tagI2W[predictions]
-                    print("Confidence: {},Action_Name:{}".format(confidence, action_name))
+                    print("Confidence: {:.2f},Action_Name:{}".format(confidence, action_name))
                     frame = vis_frame(frame, pose, args)   # visulize the pose result
                     # render predicted class names on video frames 
                     if action_name=='Fall':
@@ -407,7 +390,7 @@ def predict2d3d_frame():
 
 
 if __name__ == '__main__':
-    predict_frame()
+    #predict_frame()
     #predict2d_frame()
-    #predict2d3d_frame()
+    predict2d3d_frame()
    
