@@ -34,9 +34,32 @@ class classifier():
         self.model.eval()
     
     def predict_action(self, keypoints):
+        #predict using this function if 2d data in alphapose format i.e., if POSE_JOINT_SIZE=24
+        points = keypoints.numpy()
+        points = normalize_min_(points)
+        if self.cfg.MODEL[:3]=='dnn':
+            points = points.reshape(1,self.POSE_JOINT_SIZE)
+        else:
+            points = points.reshape(1,self.n_frames,self.POSE_JOINT_SIZE)
+        actres = self.model.exe(points,self.opt.device,self.holder)
+        return actres[1]
+    
+    def predict_2d(self, keypoints):
+        #predict using this function if 2d data in h3.6m format i.e., if POSE_JOINT_SIZE=34
         points = keypoints.numpy()
         points = normalize_min_(points)
         #if self.cfg.MODEL[:3]=='dnn':
+        if self.cfg.MODEL[:3]=='dnn':
+            points = points.reshape(1,self.POSE_JOINT_SIZE)
+        else:
+            points = points.reshape(1,self.n_frames,self.POSE_JOINT_SIZE)
+        actres = self.model.exe(points,self.opt.device,self.holder)
+        return actres[1]
+
+    def predict_2d3d(self, keypoints):
+        #predict using this function if 2d and 3d data in h3.6m format i.e., if pose2d=34 and pose3d=51
+        points = keypoints.numpy()
+        points = normalize_min_(points)
         if self.cfg.MODEL[:3]=='net':
             points = points.reshape(1,self.POSE_JOINT_SIZE)
         else:
