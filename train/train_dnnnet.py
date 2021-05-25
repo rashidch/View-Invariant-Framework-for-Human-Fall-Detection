@@ -92,7 +92,7 @@ class trainDNN():
                         loss1 = criterion(raw_preds1, targets1)
                         loss2 = criterion(raw_preds2, targets2)
                         loss3 = criterion(raw_preds3, targets2)
-                        loss = loss1+loss2+loss3
+                        loss = loss1+loss2
                         
                         # backward + optimize only ig in training phase
                         if phase == 'train':
