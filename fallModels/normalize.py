@@ -47,6 +47,32 @@ def normalize_min_(pose:np.ndarray):
             pose[i,:,1] /= ylen
     return pose
 
+def normalize3d_min_(pose:np.ndarray):
+    pose = pose.reshape(len(pose),-1,3)
+    for i in range(len(pose)):
+        xmin = np.min(pose[i,:,0]) 
+        ymin = np.min(pose[i,:,1])
+        zmin = np.min(pose[i,:,2])
+        xlen = np.max(pose[i,:,0]) - xmin
+        ylen = np.max(pose[i,:,1]) - ymin
+        zlen = np.max(pose[i,:,2]) - zmin
+
+        if(xlen==0): pose[i,:,0]=0
+        else:
+            pose[i,:,0] -= xmin 
+            pose[i,:,0] /= xlen
+
+        if(ylen==0): pose[i,:,1]=0
+        else:
+            pose[i,:,1] -= ymin
+            pose[i,:,1] /= ylen
+
+        if(zlen==0): pose[i,:,2]=0
+        else:
+            pose[i,:,2] -= zmin
+            pose[i,:,2] /= zlen
+    return pose
+
 def normalize_min_seq_(pose:np.ndarray):
     pose = pose.reshape(len(pose),-1,2)
     xmin = np.min(pose[:,:,0]) 

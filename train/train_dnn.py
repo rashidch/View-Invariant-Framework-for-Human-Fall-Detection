@@ -11,7 +11,7 @@ import torch.nn as nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from fallModels.models import dnntiny
-from dataloader import SinglePoseDataset
+from dataloader import SinglePose2dDataset, SinglePose3dDataset
 from plot_statics import plot_Statistics
 
 currTime = time.asctime( time.localtime(time.time()))[4:-5]
@@ -158,10 +158,13 @@ class trainDNN():
 
 if __name__ == '__main__':
 
-    DNN_model   = dnntiny(input_dim=24, class_num=2).to(device)
+    DNN_model   = dnntiny(input_dim=34, class_num=2).to(device)
     #get test dataloaders
-    dataloaders, dataset_sizes = SinglePoseDataset.getData(reshape=False, bs=16,n_frames=1)
+    dataloaders, dataset_sizes = SinglePose2dDataset.get2dData(reshape=False, bs=16,n_frames=1)
+    #dataloader3d, dataset3d_sizes = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
+    #print(dataloader, dataset_sizes)
+    #print(dataloader3d, dataset3d_sizes)
     #train the model
     history, model, conf_train, conf_valid = trainDNN.train(DNN_model, dataloaders, dataset_sizes, num_epochs=500)
     #plot the model statistics 
-    plot_Statistics(history,conf_train, conf_valid,name='dnntiny')
+    #plot_Statistics(history,conf_train, conf_valid,name='dnntiny')

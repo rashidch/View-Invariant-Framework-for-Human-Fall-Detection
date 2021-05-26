@@ -1,0 +1,8 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Datasource local storage ignored files
+/../../../../../../:\Project Lab\THESIS_FALL_DETECTION\2D to 3D Pose\Falling-Person-Detection-based-On-AlphaPose\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
