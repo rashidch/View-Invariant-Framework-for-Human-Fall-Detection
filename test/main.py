@@ -6,15 +6,15 @@ import time
 
 import cv2
 import numpy as np
-from test.prediction import classifier
-from test.prediction import PoseEstimation 
+from prediction import classifier
+from prediction import PoseEstimation
 from source.alphapose.utils.config import update_config
-from test.vis import vis_frame
-from test.utils import ResizePadding
+from vis import vis_frame
+from utils import ResizePadding
 
-from test.uplift2dto3d.get3d import inferencealphaposeto3d_one
+from uplift2dto3d.get3d import inferencealphaposeto3d_one,transform3d_one
 from test.uplift2dto3d.alpha_h36m import map_alpha_to_human
-from test.uplift2dto3d.uplift2d import *
+from uplift2dto3d.uplift2d import *
 
 """----------------------------- Demo options -----------------------------"""
 parser = argparse.ArgumentParser(description='AlphaPose Single-Image Demo')
@@ -28,6 +28,8 @@ parser.add_argument('--detector', dest='detector',
                     help='detector name', default="yolo")                
 parser.add_argument('--vis', default=True, action='store_true',
                     help='visualize image')
+parser.add_argument('--transform', default=True, action='store_true',
+                    help='Do you want to transform the angle?')
 parser.add_argument('--showbox', default=False, action='store_true',
                     help='visualize human bbox')
 parser.add_argument('--profile', default=False, action='store_true',
@@ -40,10 +42,12 @@ parser.add_argument('--flip', default=False, action='store_true',
                     help='enable flip testing')
 parser.add_argument('--vis_fast', dest='vis_fast',
                     help='use fast rendering', action='store_true', default=False)
-parser.add_argument('--save_out', type=str, default='outputs/dnn2d3d/5.avi',
+parser.add_argument('--save_out', type=str, default='outputs/dnn2d3d/3_transform.avi',
                         help='Save display to video file.')
 parser.add_argument('--cam', dest='inputvideo', help='video-name', 
-                    default='examples/demo/test/5.avi') 
+                    default='examples/demo/test/3.mp4')
+parser.add_argument('--transform_file', dest='transfile', help='transformation-camera-file',
+                    default='examples/transformation_file/taoyuan_angle2_3D_Original to taoyuan_angle1_3D_Original_transformationvalue.pickle')
 
 parser.add_argument('--classifier', dest='classmodel', type=str, default='net',
                     help='choose classifer model, defualt dnn model')
@@ -281,6 +285,11 @@ def predict2d3d_frame():
     tagI2W = ["Fall","Stand"]
     cam_source = args.inputvideo
 
+    if(args.transform):
+        trans_path = args.transfile
+        with open(trans_path, 'rb') as fp:
+            trans = pickle.load(fp)
+
     if type(cam_source) is str and os.path.isfile(cam_source):
         # capture video file usign VideoCapture handler.
         cap = cv2.VideoCapture(cam_source)
@@ -321,9 +330,14 @@ def predict2d3d_frame():
                 continue
             # convert 2d pose to 3d
             _pose =pose['result'][0]['keypoints'].cpu().numpy().reshape(pose2d_size,)
-            human3d,human2d = inferencealphaposeto3d_one(_pose, input_type="array")
-            
-            # merge the body keypints of (N=5) frames to create a sequence of body keypoints  
+
+            if (args.transform):
+                human3d = inferencealphaposeto3d_one(_pose, input_type="array",need_2d=False)
+                human3d, human2d = transform3d_one(trans,human3d)
+            else:
+                human3d, human2d = inferencealphaposeto3d_one(_pose, input_type="array",need_2d=True)
+
+            # merge the body keypints of (N=5) frames to create a sequence of body keypoints
             if frameIdx!=n_frames:
                 human = pose['result'][0]    
                 humanData[frameIdx] = human2d.reshape(1,pose2d_size)

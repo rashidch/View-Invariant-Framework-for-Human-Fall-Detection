@@ -1,45 +1,21 @@
 #import source3d.src
 #from source3d.src
 from __future__ import print_function, absolute_import
-import os
-import sys
-import time
-import copy
 
-import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow.compat.v1 as tf
 
-from source3d.src import cameras
-from source3d.src import data_utils
-from source3d.src import linear_model
-from source3d.src import procrustes
-from source3d.src import viz
-import glob
-import cdflib
+import os,sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+
 sys.argv = sys.argv[:1]
 
-import cv2
-import torch
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
-from source3d.src import data_process as data_process
-
-import json 
-from source3d.src.model import LinearModel, weight_init
-import torch.nn as nn
-from source3d.src import utils as utils
+import json
 
 sys.path.append(os.path.join(os.path.dirname('__file__'), "progress"))
 
-from progress.bar import Bar as Bar
-
 # Load Human3.6M Skeleton
-import torch.nn as nn
-import torch.optim
-import torch.backends.cudnn as cudnn
-from torch.utils.data import DataLoader
-from torch.autograd import Variable
 import pickle
 
 # Joints in H3.6M -- data has 32 joints, but only 17 that move; these are the indices.

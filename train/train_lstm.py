@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import torch
-import torch.nn as nn
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
-from fallModels.models import FallModel, DNN_tiny
+from fallModels.models import FallModel
 from dataloader import prepare_data
 
 def save_model(model, optimizer, loss, acc, epoch, save_path):

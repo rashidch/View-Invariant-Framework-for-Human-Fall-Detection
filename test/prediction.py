@@ -1,7 +1,11 @@
-from time import process_time
-import numpy as np
 import torch
 from easydict import EasyDict as edict
+
+import os,sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+
 from fallModels.normalize import normalize_min_, normalize3d_min_
 from fallModels.models import get_model
 from test.classifier_config.apis import get_classifier_cfg

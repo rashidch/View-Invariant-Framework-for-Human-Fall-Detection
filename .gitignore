@@ -166,3 +166,6 @@ realistic-fall-dataset/
 dataset/SkeletonData
 
 
+source3d/checkpoint/test/ckpt_best.pth.tar
+source3d/checkpoint/test/ckpt_best.pth.tar
+*.tar

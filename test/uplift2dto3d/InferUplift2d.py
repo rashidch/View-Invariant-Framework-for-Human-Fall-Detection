@@ -13,6 +13,6 @@ if __name__== '__main__':
     print('data_0',len(data[0]['keypoints']))
     print('data_0',data[0]['keypoints'])  
     # How to use function
-    output_3d,output_2d=inferencealphaposeto3d_one(data[0], input_type="json")
+    output_3d,output_2d= inferencealphaposeto3d_one(data[0], input_type="json")
     print('Skeleon shape:',len(output_2d['keypoints']))
     #print('Skeleon:',output_3d) 

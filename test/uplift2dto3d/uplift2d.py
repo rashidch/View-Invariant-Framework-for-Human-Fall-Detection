@@ -26,7 +26,7 @@ from torch.utils.data import DataLoader
 from source3d.src import data_process as data_process
 
 import json 
-from source3d.src.model import LinearModel, weight_init
+from source3d.src.model import LinearModel, weight_init,OptunaModel
 import torch.nn as nn
 from source3d.src import utils as utils
 
@@ -46,11 +46,16 @@ from test.uplift2dto3d.alpha_h36m import map_alpha_to_human_classification,data_
 
 import pickle
 
-tf.app.flags.DEFINE_string("action","All", "The action to train on. 'All' means all the actions")
+try:
+    tf.app.flags.DEFINE_string("action","All", "The action to train on. 'All' means all the actions")
+except:
+    pass
 
 # Directories
-tf.app.flags.DEFINE_string("cameras_path","source3d/data/h36m/metadata.xml", "File with h36m metadata, including cameras")
-
+try:
+    tf.app.flags.DEFINE_string("cameras_path","source3d/data/h36m/metadata.xml", "File with h36m metadata, including cameras")
+except:
+    pass
 FLAGS = tf.app.flags.FLAGS
 
 # Initiate Function
@@ -149,7 +154,7 @@ def create_datatest(data):
 model_path='source3d/checkpoint/test/ckpt_best.pth.tar'
 # create model
 #print(">>> creating 3D model")
-model = LinearModel()
+model = OptunaModel()
 model = model.cuda()
 model.apply(weight_init)
 #print(">>> total params: {:.2f}M".format(sum(p.numel() for p in model.parameters()) / 1000000.0))
@@ -257,5 +262,44 @@ def correct_3D(poses3d_input,poses2d_normalized):
     return poses3d
 
 
+def project_point_radial(P, R, T, f, c, k, p):
+    """
+    Args
+    P: Nx3 points in world coordinates
+    R: 3x3 Camera rotation matrix
+    T: 3x1 Camera translation parameters
+    f: 2x1 (scalar) Camera focal length
+    c: 2x1 Camera center
+    k: 3x1 Camera radial distortion coefficients
+    p: 2x1 Camera tangential distortion coefficients
+    Returns
+    Proj: Nx2 points in pixel space
+    D: 1xN depth of each point in camera space
+    radial: 1xN radial distortion per point
+    tan: 1xN tangential distortion per point
+    r2: 1xN squared radius of the projected points before distortion
+    """
 
+    # P is a matrix of 3-dimensional points
+    assert len(P.shape) == 2
+    assert P.shape[1] == 3
+
+    N = P.shape[0]
+    X = R.dot(P.T - T)  # rotate and translate
+    XX = X[:2, :] / X[2, :]  # 2x16
+    r2 = XX[0, :] ** 2 + XX[1, :] ** 2  # 16,
+
+    radial = 1 + np.einsum('ij,ij->j', np.tile(k, (1, N)), np.array([r2, r2 ** 2, r2 ** 3]))  # 16,
+    tan = p[0] * XX[1, :] + p[1] * XX[0, :]  # 16,
+
+    tm = np.outer(np.array([p[1], p[0]]).reshape(-1), r2)  # 2x16
+
+    XXX = XX * np.tile(radial + tan, (2, 1)) + tm  # 2x16
+
+    Proj = (f * XXX) + c  # 2x16
+    Proj = Proj.T
+
+    D = X[2, ]
+
+    return Proj, D, radial, tan, r2
 

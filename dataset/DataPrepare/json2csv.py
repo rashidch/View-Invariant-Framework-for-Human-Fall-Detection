@@ -4,8 +4,11 @@ import json
 import pandas as pd
 import numpy as np
 from loguru import logger
+import glob
 
-execResjson = "find -type f -iname 'taipei_nctu_2D_Original.json' "
+
+# execResjson = "find -type f -iname 'taipei_nctu_2D_Original.json' "
+execResjson = "find -type f -iname 'taoyuan_angle1_2D_from3DOriginal.json' "
 
 #alphaI2W = [ "nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
 #"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
@@ -74,12 +77,14 @@ if __name__ == "__main__":
     if not os.path.exists(outpath):
         os.makedirs(outpath)
 
-    with os.popen(execResjson) as p:
-        jsonlist = p.read().splitlines()
-        print('files list:',jsonlist)
-        Jsons2Csv(jsonlist)
-
-    
+    # with os.popen(execResjson) as p:
+    #     jsonlist = p.read().splitlines()
+    #     print('files list:',jsonlist)
+    #     Jsons2Csv(jsonlist)
+    #
+    jsonlist=glob.glob("dataset/SkeletonData/*/*.json")
+    print('files list:', jsonlist)
+    Jsons2Csv(jsonlist)
 
 
 

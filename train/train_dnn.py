@@ -3,20 +3,24 @@ import numpy as np
 import time
 import copy
 from collections import defaultdict
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 import torch
-import torch.nn as nn
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
+
+import os,sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+
 from fallModels.models import dnntiny
-from dataloader import SinglePose2dDataset, SinglePose3dDataset
-from plot_statics import plot_Statistics
+from dataloader import SinglePose2dDataset
 
 currTime = time.asctime( time.localtime(time.time()))[4:-5]
 currTime = currTime.split(' ')
-currTime = currTime[0]+'_'+currTime[1]+'_'+currTime[2]
+# currTime = currTime[0]+'_'+currTime[1]+'_'+currTime[2]
+currTime = currTime[0]+'_'+currTime[1]
 
 class trainDNN():
     def __init__(self):

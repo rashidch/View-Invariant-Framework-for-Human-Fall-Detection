@@ -13,12 +13,17 @@ import platform
 import torch
 import numpy as np
 
-from yolo.preprocess import prep_image, prep_frame
-from yolo.darknet import Darknet
-from yolo.util import unique
-from yolo.bbox import bbox_iou
+import os,sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
-from detector.apis import BaseDetector
+from source.detector.yolo.preprocess import prep_image, prep_frame
+from source.detector.yolo.darknet import Darknet
+from source.detector.yolo.util import unique
+from source.detector.yolo.bbox import bbox_iou
+
+from source.detector.apis import BaseDetector
 
 #only windows visual studio 2013 ~2017 support compile c/cuda extensions
 #If you force to compile extension on Windows and ensure appropriate visual studio
