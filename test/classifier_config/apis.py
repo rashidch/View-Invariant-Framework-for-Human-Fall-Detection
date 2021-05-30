@@ -3,6 +3,9 @@ def get_classifier_cfg(args):
     if args.classmodel.lower() == 'dnntiny':
         from test.classifier_config.act_dnntiny_cfg import cfg3
         return cfg3
+    if args.classmodel.lower() == 'dnntiny3d':
+        from test.classifier_config.act_dnntiny3D_cfg import cfg3
+        return cfg3
     if args.classmodel.lower() == 'net':
         from test.classifier_config.net2d3d_cfg import cfg2
         return cfg2

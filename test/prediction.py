@@ -32,7 +32,7 @@ class classifier():
 
 
     def load_model(self):
-        self.model = get_model(self.cfg.MODEL,self.cfg.tagI2W, n_frames=self.n_frames,pose2d_size =self.pose2d_size, pose3d=51)
+        self.model = get_model(self.cfg.MODEL,self.cfg.tagI2W, n_frames=self.n_frames,pose2d_size =self.pose2d_size, pose3d=self.pose3d_size)
         ckpt  = torch.load(self.cfg.CHEKPT, map_location=self.opt.device)
         self.model.load_state_dict(ckpt['model_state_dict'])
         self.model.to(self.opt.device)
@@ -58,6 +58,17 @@ class classifier():
             points = points.reshape(1,self.pose2d_size)
         else:
             points = points.reshape(1,self.n_frames,self.pose2d_size)
+        actres = self.model.exe(points,self.opt.device,self.holder)
+        return actres[1]
+
+    def predict_3d(self, keypoints):
+        #predict using this function if 2d data in h3.6m format i.e., if pose2d_size=34
+        points = normalize3d_min_(keypoints)
+        #if self.cfg.MODEL[:3]=='dnn':
+        if self.cfg.MODEL[:3]=='dnn':
+            points = points.reshape(1,self.pose3d_size)
+        else:
+            points = points.reshape(1,self.n_frames,self.pose3d_size)
         actres = self.model.exe(points,self.opt.device,self.holder)
         return actres[1]
 
