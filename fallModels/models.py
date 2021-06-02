@@ -13,9 +13,6 @@ def get_model(name,tagI2W, n_frames=5, pose2d_size=34, pose3d=51):
     elif(name == 'dnntiny'):
         print("loaded dnntiny model")
         return dnntiny(input_dim=pose2d_size*n_frames, class_num=len(tagI2W))
-    elif(name == 'dnntiny3d'):
-        print("loaded dnntiny3d model")
-        return dnntiny(input_dim=pose3d*n_frames, class_num=len(tagI2W))
     elif(name == 'FallModel'):
         print("loaded FallModel model")
         return FallModel(input_dim=pose2d_size, class_num=len(tagI2W))
@@ -113,7 +110,6 @@ class dnntiny(torch.nn.Module):
     def exe(self,input_,device,holder):
         input_ = torch.Tensor(input_).to(device)
         return self.__call__(input_)
-
 
 #LSTM Model
 class FallModel(torch.nn.Module):
