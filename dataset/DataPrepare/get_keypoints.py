@@ -4,18 +4,16 @@ import os
 import platform
 import sys
 import time
-#print('Sys.path', sys.path)
-#sys.path.append('/home/rasho/Falling-Person-Detection-based-On-AlphaPose')
-#print('Sys.path', sys.path)
+
+import natsort
+# print('Sys.path', sys.path)
+# sys.path.append('/home/rasho/Falling-Person-Detection-based-On-AlphaPose')
+# print('Sys.path', sys.path)
+
+
+
 import numpy as np
 import torch
-from tqdm import tqdm
-import natsort
-
-from source.detector.apis import get_detector
-from source.trackers.tracker_api import Tracker
-from source.trackers.tracker_cfg import cfg as tcfg
-from source.trackers import track
 from source.alphapose.models import builder
 from source.alphapose.utils.config import update_config
 from source.alphapose.utils.detector import DetectionLoader
@@ -23,6 +21,11 @@ from source.alphapose.utils.transforms import flip, flip_heatmap
 from source.alphapose.utils.vis import getTime
 from source.alphapose.utils.webcam_detector import WebCamDetectionLoader
 from source.alphapose.utils.writer import DataWriter
+from source.detector.apis import get_detector
+from source.trackers import track
+from source.trackers.tracker_api import Tracker
+from source.trackers.tracker_cfg import cfg as tcfg
+from tqdm import tqdm
 
 """----------------------------- Demo options -----------------------------"""
 parser = argparse.ArgumentParser(description='AlphaPose Demo')

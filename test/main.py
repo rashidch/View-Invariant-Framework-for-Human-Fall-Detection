@@ -28,7 +28,7 @@ parser.add_argument('--detector', dest='detector',
                     help='detector name', default="yolo")
 parser.add_argument('--vis', default=True, action='store_true',
                     help='visualize image')
-parser.add_argument('--transform', default=False, action='store_true',
+parser.add_argument('--transform', default=True, action='store_true',
                     help='Do you want to transform the angle?')
 parser.add_argument('--showbox', default=False, action='store_true',
                     help='visualize human bbox')
@@ -42,16 +42,16 @@ parser.add_argument('--flip', default=False, action='store_true',
                     help='enable flip testing')
 parser.add_argument('--vis_fast', dest='vis_fast',
                     help='use fast rendering', action='store_true', default=False)
-parser.add_argument('--save_out', type=str, default='outputs/dnn2d3d/2.avi',
+parser.add_argument('--save_out', type=str, default='outputs/dnn3d/2_Transform.avi',
                     help='Save display to video file.')
 parser.add_argument('--cam', dest='inputvideo', help='video-name',
                     default='examples/demo/test/2.mp4')
 parser.add_argument('--transform_file', dest='transfile', help='transformation-camera-file',
-                    default='examples/transformation_file/taoyuan_angle2_3D_Original to taoyuan_angle1_3D_Original_transformationvalue.pickle')
+                    default='examples/transformation_file/2_3D_Original to taoyuan_angle1_3D_Original_transformationvalue.pickle')
 
 # parser.add_argument('--classifier', dest='classmodel', type=str, default='net',
 #                     help='choose classifer model, defualt dnn model')
-parser.add_argument('--classifier', dest='classmodel', type=str, default='net',
+parser.add_argument('--classifier', dest='classmodel', type=str, default='dnntiny3d',
                     help='choose classifer model, defualt dnn model')
 
 args = parser.parse_args()
@@ -607,5 +607,5 @@ def predict2d3d_frame():
 if __name__ == '__main__':
     # predict_frame()
     # predict2d_frame()
-    # predict3d_frame()
-    predict2d3d_frame()
+    predict3d_frame()
+    # predict2d3d_frame()
