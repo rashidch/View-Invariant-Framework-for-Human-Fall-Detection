@@ -15,6 +15,7 @@ from uplift2dto3d.get3d import inferencealphaposeto3d_one, transform3d_one
 from test.uplift2dto3d.alpha_h36m import map_alpha_to_human
 from uplift2dto3d.uplift2d import *
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.metrics import classification_report
 
 """----------------------------- Demo options -----------------------------"""
 parser = argparse.ArgumentParser(description='AlphaPose Single-Image Demo')
@@ -42,16 +43,16 @@ parser.add_argument('--flip', default=False, action='store_true',
                     help='enable flip testing')
 parser.add_argument('--vis_fast', dest='vis_fast',
                     help='use fast rendering', action='store_true', default=False)
-parser.add_argument('--save_out', type=str, default='outputs/dnn3d/12_Merge.avi',
+parser.add_argument('--save_out', type=str, default='outputs/dnn2d3d/12_Merge.avi',
                     help='Save display to video file.')
 parser.add_argument('--cam', dest='inputvideo', help='video-name',
                     default='examples/demo/test/12_Merge.mp4')
 parser.add_argument('--transform_file', dest='transfile', help='transformation-camera-file',
-                    default='examples/transformation_file/2_3D_Original to taoyuan_angle1_3D_Original_transformationvalue.pickle')
+                    default='examples/transformation_file/3-FallingDown_3D_Original to taoyuan_angle1_3D_Original_transformationvalue.pickle')
 
 # parser.add_argument('--classifier', dest='classmodel', type=str, default='net',
 #                     help='choose classifer model, defualt dnn model')
-parser.add_argument('--classifier', dest='classmodel', type=str, default='dnntiny3d',
+parser.add_argument('--classifier', dest='classmodel', type=str, default='net',
                     help='choose classifer model, defualt dnn model')
 
 args = parser.parse_args()
@@ -344,7 +345,6 @@ def predict3d_frame():
             # human3d, human2d = inferencealphaposeto3d_one(_pose, input_type="array")
             # print('Skeleton shape:', output_2d.shape)
             # print('Skeleton shape:', output_3d.shape)
-            human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
             if (args.transform):
                 human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
                 human3d, human2d = transform3d_one(trans, human3d)
@@ -368,7 +368,7 @@ def predict3d_frame():
                     actres = actres.cpu().numpy().reshape(-1)
                     # print(actres)
                     predictions = np.argmax(actres)
-                    # print(predictions)
+                    print(predictions)
                     # get confidence and fall down class name
                     confidence = round(actres[predictions], 3)
                     action_name = tagI2W[predictions]
@@ -397,7 +397,8 @@ def predict3d_frame():
                     frame_new = frame_new[:, :, ::-1]
                     fps_time = time.time()
                     humanData[:n_frames - 1] = humanData[1:n_frames]
-                    frameIdx = n_frames
+                    # frameIdx = n_frames
+                    frameIdx = 0
 
                     # set opencv window attributes
                     window_name = "Fall Detection Window"
@@ -413,11 +414,15 @@ def predict3d_frame():
                     out.write(frame_new.astype('uint8'))
 
                     '''Find recall precision and f1 score'''
-                    label = dictlabel[framenumber_]
-                    groundtruth.append(1 if label == 'Stand' else 0)
-                    prediction_result.append(1 if action_name == 'Stand' else 0)
-                    print("Label is: ", label)
-                    print("action_name is: ", action_name)
+                    try:
+                        label = dictlabel[framenumber_]
+                        groundtruth.append(1 if label == 'Stand' else 0)
+                        prediction_result.append(1 if action_name == 'Stand' else 0)
+                        print("Label is: ", label)
+                        print("action_name is: ", action_name)
+                    except:
+                        pass
+
         else:
             break
             # Clear resource.
@@ -425,6 +430,10 @@ def predict3d_frame():
     precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average='binary')
     recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average='binary')
     f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average='binary')
+
+    cm = confusion_matrix(np.asarray(groundtruth), np.asarray(prediction_result))
+    cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    accuracy_ = cm.diagonal()
     precision_ = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
     recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
     f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
@@ -434,9 +443,12 @@ def predict3d_frame():
     print('Recall : {}'.format(np.round(recall, 4)))
     print('F1_Score: {}'.format(np.round(f_score, 4)))
     print("\n")
+    print('Accuracy per class : {}'.format(np.round(accuracy_, 4)))
     print('Precision per class : {}'.format(np.round(precision_, 4)))
     print('Recall per class : {}'.format(np.round(recall_, 4)))
     print('F1_Score per class: {}'.format(np.round(f_score_, 4)))
+    print(classification_report(np.asarray(groundtruth), np.asarray(prediction_result), target_names=tagI2W))
+
     cap.release()
     out.release()
     cv2.destroyAllWindows()
@@ -556,7 +568,7 @@ def predict2d3d_frame():
                     frame_new = frame_new[:, :, ::-1]
                     fps_time = time.time()
                     humanData[:n_frames - 1] = humanData[1:n_frames]
-                    frameIdx = n_frames
+                    frameIdx = 0
 
                     # set opencv window attributes
                     window_name = "Fall Detection Window"
@@ -572,11 +584,15 @@ def predict2d3d_frame():
                     out.write(frame_new.astype('uint8'))
 
                     '''Find recall precision and f1 score'''
-                    label = dictlabel[framenumber_]
-                    groundtruth.append(1 if label == 'Stand' else 0)
-                    prediction_result.append(1 if action_name == 'Stand' else 0)
-                    print("Label is: ", label)
-                    print("action_name is: ", action_name)
+                    try:
+                        label = dictlabel[framenumber_]
+                        groundtruth.append(1 if label == 'Stand' else 0)
+                        prediction_result.append(1 if action_name == 'Stand' else 0)
+                        print("Label is: ", label)
+                        print("action_name is: ", action_name)
+                    except:
+                        pass
+
         else:
             break
 
@@ -586,6 +602,10 @@ def predict2d3d_frame():
     precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average='binary')
     recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average='binary')
     f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average='binary')
+
+    cm = confusion_matrix(np.asarray(groundtruth), np.asarray(prediction_result))
+    cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+    accuracy_=cm.diagonal()
     precision_ = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
     recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
     f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
@@ -595,9 +615,11 @@ def predict2d3d_frame():
     print('Recall : {}'.format(np.round(recall, 4)))
     print('F1_Score: {}'.format(np.round(f_score, 4)))
     print("\n")
+    print('Accuracy per class : {}'.format(np.round(accuracy_, 4)))
     print('Precision per class : {}'.format(np.round(precision_, 4)))
     print('Recall per class : {}'.format(np.round(recall_, 4)))
     print('F1_Score per class: {}'.format(np.round(f_score_, 4)))
+    print(classification_report(np.asarray(groundtruth), np.asarray(prediction_result), target_names=tagI2W))
 
     cap.release()
     out.release()
@@ -607,5 +629,5 @@ def predict2d3d_frame():
 if __name__ == '__main__':
     # predict_frame()
     # predict2d_frame()
-    predict3d_frame()
-    # predict2d3d_frame()
+    # predict3d_frame()
+    predict2d3d_frame()
