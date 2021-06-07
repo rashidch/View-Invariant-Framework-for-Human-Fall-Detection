@@ -82,7 +82,7 @@ if __name__ == "__main__":
     #     print('files list:',jsonlist)
     #     Jsons2Csv(jsonlist)
     #
-    jsonlist=glob.glob("dataset/SkeletonData/*/*.json")
+    jsonlist=glob.glob("dataset/SkeletonData/2dh3.6mfrom3d/*.json")
     print('files list:', jsonlist)
     Jsons2Csv(jsonlist)
 

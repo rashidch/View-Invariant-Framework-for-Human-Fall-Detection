@@ -28,7 +28,7 @@ parser.add_argument('--detector', dest='detector',
                     help='detector name', default="yolo")
 parser.add_argument('--vis', default=True, action='store_true',
                     help='visualize image')
-parser.add_argument('--transform', default=True, action='store_true',
+parser.add_argument('--transform', default=False, action='store_true',
                     help='Do you want to transform the angle?')
 parser.add_argument('--showbox', default=False, action='store_true',
                     help='visualize human bbox')
@@ -42,10 +42,10 @@ parser.add_argument('--flip', default=False, action='store_true',
                     help='enable flip testing')
 parser.add_argument('--vis_fast', dest='vis_fast',
                     help='use fast rendering', action='store_true', default=False)
-parser.add_argument('--save_out', type=str, default='outputs/dnn3d/2_Transform.avi',
+parser.add_argument('--save_out', type=str, default='outputs/dnn3d/12_Merge.avi',
                     help='Save display to video file.')
 parser.add_argument('--cam', dest='inputvideo', help='video-name',
-                    default='examples/demo/test/2.mp4')
+                    default='examples/demo/test/12_Merge.mp4')
 parser.add_argument('--transform_file', dest='transfile', help='transformation-camera-file',
                     default='examples/transformation_file/2_3D_Original to taoyuan_angle1_3D_Original_transformationvalue.pickle')
 

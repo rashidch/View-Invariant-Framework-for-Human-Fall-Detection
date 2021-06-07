@@ -1,5 +1,6 @@
 import os
 import shutil
+import glob
 import json
 import pandas as pd
 import numpy as np
@@ -73,10 +74,14 @@ if __name__ == "__main__":
     if not os.path.exists(outpath):
         os.makedirs(outpath)
 
-    with os.popen(execResjson) as p:
-        jsonlist = p.read().splitlines()
-        print('files list:',jsonlist)
-        Jsons2Csv(jsonlist)
+    # with os.popen(execResjson) as p:
+    #     jsonlist = p.read().splitlines()
+    #     print('files list:',jsonlist)
+    #     Jsons2Csv(jsonlist)
+
+    jsonlist=glob.glob("dataset/SkeletonData/3dh3.6m/*.json")
+    print('files list:', jsonlist)
+    Jsons2Csv(jsonlist)
 
     
 

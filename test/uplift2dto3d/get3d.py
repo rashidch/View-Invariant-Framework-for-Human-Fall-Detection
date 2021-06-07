@@ -38,11 +38,16 @@ def inferencealphaposeto3d_one(alpha2d,input_type="json",need_2d=True):
         num_workers=0,
         pin_memory=True)
 
-    #Doing Inference
-    pred_result_all=test(test_loader, model, criterion, new_stat_3d) #All
+    # Doing Inference
+    pred_result_all = test(test_loader, model, criterion, new_stat_3d)  # All
     dim_use = np.hstack((np.arange(3), dim_to_use_3d))
-    prediction=pred_result_all[0][0][dim_use]
-    human3d=prediction
+    prediction = pred_result_all[0][0][dim_use]
+    centroids = find_centroid_single(prediction)
+    angles = [0, 0, 260]
+    human3d = rotate_single(centroids, prediction, angles)
+    human3d = human3d - np.tile(human3d[:3], [17])
+
+
 
     if need_2d:
         return human3d,human2d

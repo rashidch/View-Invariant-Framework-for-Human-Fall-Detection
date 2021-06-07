@@ -18,7 +18,7 @@ from source3d.src import viz
 import glob
 import cdflib
 sys.argv = sys.argv[:1]
-
+import math
 import cv2
 import torch
 from torch.utils.data import Dataset
@@ -303,3 +303,44 @@ def project_point_radial(P, R, T, f, c, k, p):
 
     return Proj, D, radial, tan, r2
 
+
+def find_centroid_single(skeletons):
+    skeleton_test=skeletons.reshape(int(51/3),3)
+    centroid=np.mean(skeleton_test, axis=0)
+    return centroid
+
+def rotate_single(origin, skeletons, angle):
+    """
+    Rotate a point counterclockwise by a given angle around a given origin.
+
+    The angle should be given in radians.
+    """
+    joints = []
+    skeleton_test=skeletons.reshape(int(51/3),3)
+    angle_xy,angle_xz,angle_yz=math.radians(angle[0]),math.radians(angle[1]),math.radians(angle[2])
+
+    for j,join in enumerate(skeleton_test):
+        ox, oy,oz = origin[0],origin[1],origin[2]
+        px, py,pz = join[0],join[1],join[2]
+
+        #Rotation XY
+        qx = ox + math.cos(angle_xy) * (px - ox) - math.sin(angle_xy) * (py - oy)
+        qy = oy + math.sin(angle_xy) * (px - ox) + math.cos(angle_xy) * (py - oy)
+        px, py,pz=qx,qy,pz
+
+        #Rotation XZ
+        qx = ox + math.cos(angle_xz) * (px - ox) - math.sin(angle_xz) * (pz - oz)
+        qz = oz + math.sin(angle_xz) * (px - ox) + math.cos(angle_xz) * (pz - oz)
+        px, py,pz=qx,py,qz
+
+        #Rotation YZ
+        qy = oy + math.cos(angle_yz) * (py - oy) - math.sin(angle_yz) * (pz - oz)
+        qz = oz + math.sin(angle_yz) * (py - oy) + math.cos(angle_yz) * (pz - oz)
+        px, py,pz=px,qy,qz
+
+        joints.append(px)
+        joints.append(py)
+        joints.append(pz)
+
+    rotated=np.asarray(joints)
+    return rotated
