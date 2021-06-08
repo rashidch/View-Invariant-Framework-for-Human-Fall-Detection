@@ -26,9 +26,9 @@ from source.alphapose.utils.writer import DataWriter
 
 """----------------------------- Demo options -----------------------------"""
 parser = argparse.ArgumentParser(description='AlphaPose Demo')
-parser.add_argument('--cfg', type=str, required=True,
+parser.add_argument('--cfg', type=str, default='source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml',
                     help='experiment configure file name')
-parser.add_argument('--checkpoint', type=str, required=True,
+parser.add_argument('--checkpoint',default='source/pretrained_models/fast_res50_256x192.pth', type=str,
                     help='checkpoint file name')
 parser.add_argument('--sp', default=False, action='store_true',
                     help='Use single process for pytorch')
@@ -43,7 +43,7 @@ parser.add_argument('--list', dest='inputlist',
 parser.add_argument('--image', dest='inputimg',
                     help='image-name', default="")
 parser.add_argument('--outdir', dest='outputpath',
-                    help='output-directory', default="examples/res/")
+                    help='output-directory', default="dataset/SkeletonData")
 parser.add_argument('--save_img', default=False, action='store_true',
                     help='save result as image')
 parser.add_argument('--vis', default=False, action='store_true',
@@ -135,11 +135,24 @@ def check_input():
             im_names = open(inputlist, 'r').readlines()
         elif len(inputpath) and inputpath != '/':
             for root, dirs, files in os.walk(inputpath):
-                if not root.split('/')[-1]=='Falling_Standing':
+                
+                if len(root.split('/'))==3:
                     directory_name = root.split('/')[-1]+'/'
                     for file in files:
+                        #print('path',directory_name+file)
                         im_names.append(directory_name+file) 
                     im_names = natsort.natsorted(im_names)
+                
+                elif len(root.split('/'))>4:
+                    root_splits =root.split('/')[1:]
+                    directory_name = os.path.join(root_splits[1],root_splits[2],root_splits[3])
+                    for file in files:
+                        #print(root)
+                        #print('path',directory_name+'/'+file)
+                        im_names.append(directory_name+'/'+file) 
+                    im_names = natsort.natsorted(im_names)
+                
+            print(im_names[0],im_names[1])
         elif len(inputimg):
             args.inputpath = os.path.split(inputimg)[0]
             im_names = [os.path.split(inputimg)[1]]

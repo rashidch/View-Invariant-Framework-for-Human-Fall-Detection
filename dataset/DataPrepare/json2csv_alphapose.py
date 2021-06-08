@@ -5,16 +5,16 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
-execResjson = "find -type f -iname 'multicam_full_h36m.json' "
+execResjson = "find -type f -iname 'multicam_full.json' "
 
-#alphaI2W = [ "nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
-#"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
+alphaI2W = ["nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
+"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
 
 #alphaI2W = ["LShoulder","RShoulder", "LElbow","RElbow",\
 #"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
 
-h36mI2W = ["Hip", "RHip", "RKnee", "RFoot", "LHip", "LKnee", "LFoot", "Spine",\
-"Thorax","Nose", "Head", "LShoulder","LElbow", "LWrist", "RShoulder", "RElbow", "RWrist"]
+#h36mI2W = ["Hip", "RHip", "RKnee", "RFoot", "LHip", "LKnee", "LFoot", "Spine",\
+#"Thorax","Nose", "Head", "LShoulder","LElbow", "LWrist", "RShoulder", "RElbow", "RWrist"]
 
 
 #alphaI2W = ["Nose", "Neck", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist", "RHip",\
@@ -26,7 +26,7 @@ def cleanJson(jslist:list):
     dicts =[]
     for jsitem in jslist:
         #print('keypoints list', len(jsitem['keypoints']))
-        itKeypoints = np.array(jsitem['keypoints']).reshape(-1,2)
+        itKeypoints = np.array(jsitem['keypoints']).reshape(-1,3)
         #itKeypoints = itKeypoints[5:]
         print('keypoints:',itKeypoints.shape)
         idx = jsitem['idx']
@@ -42,8 +42,9 @@ def cleanJson(jslist:list):
             idx= idx[0]
         d={'image_id': imgid, 'idx':idx, 'pos_class':pose_class, 'box':box, 'score':score}
         for i,xys in enumerate(itKeypoints):
-            d[h36mI2W[i]+'_x'] = xys[0]
-            d[h36mI2W[i]+'_y'] = xys[1]
+            d[alphaI2W[i]+'_x'] = xys[0]
+            d[alphaI2W[i]+'_y'] = xys[1]
+            d[alphaI2W[i]+'_s'] = xys[2]
         dicts.append(d)
     return dicts
 

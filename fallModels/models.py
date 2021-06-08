@@ -118,7 +118,7 @@ class FallModel(torch.nn.Module):
         super(FallModel, self).__init__()
         self.input = input_dim
         self.num_layers = 3
-        self.hidden_state = 24
+        self.hidden_state = 34
         self.lstm = nn.LSTM(self.input, self.hidden_state, num_layers=self.num_layers, dropout=0.5 , batch_first=True)
         self.linear = nn.Sequential(nn.Linear(self.hidden_state, class_num), nn.ELU())
         self.class_num = class_num

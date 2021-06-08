@@ -169,9 +169,6 @@ class trainDNN():
                 'acc':  acc,
                 }, SAVE_FILE)
 
-
-    
-
 if __name__ == '__main__':
 
     DNN_model   = Net(class_num=2, input2d=34, input3d=51, ).to(device)

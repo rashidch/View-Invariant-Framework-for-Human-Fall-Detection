@@ -221,7 +221,7 @@ def map_alpha_to_human_classification_json(path):
         human36m_alpha_example=human36m_alpha_example.astype('float')
         converted.append(human36m_alpha_example)
 
-    converted=np.asarray(converted) 
+    #converted=np.asarray(converted) 
         
     # Closing file 
     f.close() 
