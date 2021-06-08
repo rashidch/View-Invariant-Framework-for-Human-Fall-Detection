@@ -1,5 +1,9 @@
 python test/main.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint source/pretrained_models/fast_res50_256x192.pth --cam examples/demo/test/1.mp4 --vis_fast --save_out outputs/1.avi
 
-python dataset/dataPrepare/get_keypoints.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint source/pretrained_models/fast_res50_256x192.pth --indir input/Falling_Standing_2 --outdir frames --save_img --qsize 50
+python dataset/DataPrepare/get_keypoints.py --cfg source/configs/coco/resnet/256x192_res50_lr1e-3_1x.yaml --checkpoint source/pretrained_models/fast_res50_256x192.pth --indir input/Falling_Standing_2 --outdir frames --save_img --qsize 50
 
 python train/train_dnn.py 
+
+python dataset/DataPrepare/get_keypoints.py --indir input/Falling_Standing_2 --save_img --qsize 50s
+
+python dataset/DataPrepare/get_keypoints.py --indir input/multicam600 --save_img --qsize 5

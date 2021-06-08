@@ -149,7 +149,12 @@ class DetectionLoader():
                 im_names.append(os.path.basename(im_name_k))
                 im_dim_list.append(im_dim_list_k)
                 
-                im_url_k.append(im_name_k.split('/')[-2])
+                if len(im_name_k.split('/'))==2:
+                    im_url_k.append(im_name_k.split('/')[-2])
+                elif len(im_name_k.split('/'))>2:
+                    #print(im_name_k.split('/')[-4])
+                    im_url_k.append(im_name_k.split('/')[-4])
+
             
             with torch.no_grad():
                 # Human Detection

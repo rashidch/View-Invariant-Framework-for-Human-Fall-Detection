@@ -43,9 +43,10 @@ class SinglePose2dDataset(Dataset):
         KP_df = pd.read_csv(csv_file_path)
         #print("DataFrame shape:", KP_df.shape)
         # convert pos_class to categories
-        KP_df['pos_class'] = KP_df['pos_class'].astype('category')
-        KP_df['pos_class'] = KP_df['pos_class'].cat.codes
+        #c = KP_df['pos_class'].astype('category')
+        #print(c.cat.categories, c.cat.codes)
 
+        KP_df['pos_class'] = KP_df['pos_class'].astype('category').cat.codes
         # skipping (0-3) colomns , return values of all rows and columns from 4 to last
         features = KP_df.iloc[:,6:].values
         #return values of pose_class 
