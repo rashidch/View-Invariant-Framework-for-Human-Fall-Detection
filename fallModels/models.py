@@ -9,17 +9,17 @@ def get_model(name,tagI2W, n_frames=5, pose2d_size=34, pose3d=51):
         #print("loaded Net model")
         return Net(pose2d_size,pose3d, len(tagI2W))
     elif(name == 'dnntiny'):
-        print("loaded dnntiny model")
+        #print("loaded dnntiny model")
         return dnntiny(input_dim=pose2d_size*n_frames, class_num=len(tagI2W))
     elif(name == 'FallModel'):
         #print("loaded FallModel model")
         return FallModel(input_dim=pose2d_size, class_num=len(tagI2W))
     elif(name == 'FallNet'):
-        print("loaded FallNet model")
+        #print("loaded FallNet model")
         return FallNet(input_dim=pose2d_size, class_num=len(tagI2W))
-    elif(name == 'DNN'):
-        print("loaded DNN model")
-        return DNN(input_dim=pose2d_size*n_frames, class_num=len(tagI2W))
+    elif(name == 'dnnnet'):
+        #print("loaded DNN model")
+        return dnnnet(input_dim=pose2d_size*n_frames, class_num=len(tagI2W))
 #dnn block
 class block(nn.Module):
     def __init__(self,input_size):
@@ -108,6 +108,38 @@ class dnntiny(torch.nn.Module):
     def exe(self,input_,device,holder):
         input_ = torch.Tensor(input_).to(device)
         return self.__call__(input_)
+
+class dnnnet(torch.nn.Module):
+    
+    def __init__(self, input_dim, class_num):
+        
+        super().__init__()
+        self.fc1 = torch.nn.Linear(input_dim,1024)
+        #print('fc1',self.fc1)
+        self.bn1 = torch.nn.BatchNorm1d(1024)
+        self.fc2 = torch.nn.Linear(1024,1024)
+        self.bn2 = torch.nn.BatchNorm1d(1024)
+        self.fc3 = torch.nn.Linear(1024,512)
+        self.bn3 = torch.nn.BatchNorm1d(512)
+        self.fc4 = torch.nn.Linear(512, class_num)
+        self.class_num = class_num
+      
+    def forward(self, _input):
+        _fc1 = F.relu(self.fc1(_input))
+        _bn1 = F.dropout(self.bn1(_fc1),p=0.5)
+        _fc2 = F.relu(self.fc2(_bn1))
+        _bn2 = F.dropout(self.bn2(_fc2), p=0.5)
+        _fc3 = F.relu(self.fc3(_bn2))
+        _bn3 = F.dropout(self.bn3(_fc3), p=0.5)
+        _fc4 = self.fc4(_bn3)
+        output = F.softmax(_fc4, dim=1)
+        
+        return _fc4, output
+
+    def exe(self,input_,device,holder):
+        input_ = torch.Tensor(input_).to(device)
+        return self.__call__(input_)
+
 
 #LSTM Model
 class FallModel(torch.nn.Module):

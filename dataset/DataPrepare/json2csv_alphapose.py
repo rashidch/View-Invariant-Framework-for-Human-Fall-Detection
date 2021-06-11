@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
-execResjson = "find -type f -iname 'multicam_full.json' "
+execResjson = "find -type f -iname 'taoyuan.json' "
 
 alphaI2W = ["nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
 "LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
@@ -44,7 +44,7 @@ def cleanJson(jslist:list):
         for i,xys in enumerate(itKeypoints):
             d[alphaI2W[i]+'_x'] = xys[0]
             d[alphaI2W[i]+'_y'] = xys[1]
-            d[alphaI2W[i]+'_s'] = xys[2]
+            #d[alphaI2W[i]+'_s'] = xys[2]
         dicts.append(d)
     return dicts
 
@@ -70,7 +70,7 @@ def Jsons2Csv(filelist:list):
             # os.remove(fpath)
             
 if __name__ == "__main__":
-    logger.add('dataset/DataPrepare/json2csv_{time}.log') 
+    #logger.add('dataset/DataPrepare/json2csv_{time}.log') 
     outpath = 'dataset/DataCSV'
     if not os.path.exists(outpath):
         os.makedirs(outpath)

@@ -13,7 +13,7 @@ from torch.utils.data import SubsetRandomSampler
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from sklearn import model_selection
-from fallModels.models import dnntiny
+from fallModels.models import dnntiny, dnnnet
 from train.dataloader import SinglePose2dDataset
 from train.plot_statics import plot_Statistics
 
@@ -28,14 +28,14 @@ class trainDNN:
 
     # training function
     @staticmethod
-    def train(model, dataloaders, dataset_sizes, num_epochs=3000):
+    def train(model, dataloader, dataset_size, num_epochs=3000, fold=None):
 
         history = defaultdict(list)
         # define the optimization
         criterion = torch.nn.CrossEntropyLoss().to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=150, gamma=0.1)
-        # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,patience=5, factor=0.1,verbose=True)
+        #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,patience=100, factor=0.7,verbose=True)
 
         since = time.time()
         best_model_wts = copy.deepcopy(model.state_dict())
@@ -63,7 +63,7 @@ class trainDNN:
                 class_tensor = torch.zeros(0, dtype=torch.long, device="cpu")
 
                 # enumerate over mini_batch
-                for i, (inputs, targets) in enumerate(dataloaders[phase]):
+                for i, (inputs, targets) in enumerate(dataloader[phase]):
                     inputs = inputs.to(device)
                     targets = targets.to(device)
 
@@ -100,8 +100,8 @@ class trainDNN:
                     class_tensor = torch.cat([class_tensor, targets.view(-1).cpu()])
 
                 # epoch loss and accuracy
-                epoch_loss = running_loss / dataset_sizes[phase]
-                epoch_acc = running_corrects.double() / dataset_sizes[phase]
+                epoch_loss = running_loss / dataset_size[phase]
+                epoch_acc = running_corrects.double() / dataset_size[phase]
                 history[phase].append(
                     (
                         epoch_loss,
@@ -110,6 +110,7 @@ class trainDNN:
                 )
 
                 if phase == "valid":
+                    #scheduler.step(epoch_loss)
                     scheduler.step()
 
                 # Confusion matrix
@@ -134,7 +135,7 @@ class trainDNN:
                     conf_valid = conf_mat
                     # best_model_wts = copy.deepcopy(model.state_dict())
                     trainDNN.save_model(
-                        model, optimizer, loss_, epoch_acc, epoch_, save_path=r"checkpoints/dnn_" + currTime
+                        model, optimizer, loss_, epoch_acc, epoch_,fold,save_path=r"checkpoints/alph_dnnnet_" + currTime
                     )
 
                 if phase == "train" and epoch_acc > best_acc:
@@ -142,6 +143,9 @@ class trainDNN:
 
             print()
 
+        trainDNN.save_model(
+        model, optimizer, loss_, epoch_acc, epoch_,fold,save_path=r"checkpoints/alph_dnnnet_" + currTime
+                    )
         time_elapsed = time.time() - since
         print("Training complete in {:.0f}m {:.0f}s".format(time_elapsed // 60, time_elapsed % 60))
         print("Best val Acc: {:4f}".format(epoch_acc))
@@ -149,12 +153,15 @@ class trainDNN:
         return history, model, conf_train, conf_valid
 
     @staticmethod
-    def save_model(model, optimizer, loss, acc, epoch, save_path):
+    def save_model(model, optimizer, loss, acc, epoch,fold, save_path): 
 
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         print("SAVING EPOCH %d" % epoch)
-        filename = "epoch_%d" % epoch + "_loss_%f.pth" % loss
+        if fold!=None:
+            filename = "fold_%d" % fold+"_epoch_%d" % epoch + "_loss_%f.pth" % loss
+        else:
+            filename = "epoch_%d" % epoch + "_loss_%f.pth" % loss
         SAVE_FILE = os.path.join(save_path, filename)
         torch.save(
             {
@@ -168,46 +175,51 @@ class trainDNN:
         )
 
     @staticmethod
-    def trainWithKfolds(kfolds=5,n_frames=1, bs=32):
+    def trainWithKfolds(DNN_model,kfolds=5,n_frames=1, bs=32, num_epochs=1500):
         
-        cross_valid = model_selection.StratifiedKFold(n_splits=5, shuffle=False)
+        cross_valid = model_selection.StratifiedKFold(n_splits=kfolds, shuffle=False)
 
         #get pose dataset
         dataset = SinglePose2dDataset(n_frames=n_frames)
-        targets = dataset.y
         for fold, (train_idx, valid_idx) in enumerate(cross_valid.split(X=dataset.X, y=dataset.y)):
             print("------------Corss Validation KFold {}--------".format(fold))
+            #print(len(train_idx), len(valid_idx))
             train_sampler = SubsetRandomSampler(train_idx)
             valid_sampler = SubsetRandomSampler(valid_idx)
 
             train_dl  = DataLoader(dataset, batch_size=bs, num_workers=4, sampler=train_sampler, drop_last=True)
             valid_dl  = DataLoader(dataset, batch_size=bs, sampler=valid_sampler, drop_last=True)
 
-            dataloaders  ={'train':train_dl, 'valid':valid_dl}, 
-            dataset_sizes ={'train':len(train_sampler), 'valid':len(valid_sampler)}
-
+            dataloader  = {'train':train_dl, 'valid':valid_dl} 
+            dataset_size = {'train':len(train_sampler), 'valid':len(valid_sampler)}
             # train the model
-            history, model, conf_train, conf_valid = trainDNN.train(DNN_model, dataloaders, dataset_sizes, num_epochs=1500)
+            history, _, conf_train, conf_valid = trainDNN.train(DNN_model, dataloader, dataset_size, num_epochs=num_epochs, fold=fold)
         #plot the model statistics 
-        plot_Statistics(history,conf_train, conf_valid,name='dnn2d',epochs=1500)
+        plot_Statistics(history,conf_train, conf_valid,name='dnn2d',epochs=num_epochs)
+    
+    @staticmethod
+    def trainWithsplit(DNN_model,n_frames=1, bs=32, num_epochs=1500):
+
+        # get test dataloaders
+        dataloaders, dataset_sizes = SinglePose2dDataset.get2dData(reshape=False, bs=bs, n_frames=n_frames)
+        # dataloader3d, dataset3d_sizes = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
+        print(dataloaders, dataset_sizes)
+        # train the model
+        history, model, conf_train, conf_valid = trainDNN.train(DNN_model, dataloaders, dataset_sizes, num_epochs=num_epochs)
+        #plot the model statistics 
+        plot_Statistics(history,conf_train, conf_valid,name='dnnnet2d',epochs=num_epochs)
+
 
 if __name__ == "__main__":
 
     # set training mode
-    training_mode = "cross_validation"
+    training_mode = "train_test_split"
 
-    DNN_model = dnntiny(input_dim=34, class_num=2).to(device)
+    #DNN_model = dnntiny(input_dim=34, class_num=2).to(device)
+    DNN_model = dnnnet(input_dim=34, class_num=2).to(device)
 
     if training_mode == "train_test_split":
+        trainDNN.trainWithsplit(DNN_model,n_frames=1, bs=32, num_epochs=1000)
         
-        # get test dataloaders
-        dataloaders, dataset_sizes = SinglePose2dDataset.get2dData(reshape=False, bs=32, n_frames=1)
-        # dataloader3d, dataset3d_sizes = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
-        print(dataloaders, dataset_sizes)
-        # train the model
-        history, model, conf_train, conf_valid = trainDNN.train(DNN_model, dataloaders, dataset_sizes, num_epochs=1500)
-        #plot the model statistics 
-        plot_Statistics(history,conf_train, conf_valid,name='dnn2d',epochs=1500)
-    
     elif training_mode == "cross_validation":
-       trainDNN.trainWithKfolds(kfolds=5,n_frames=1, bs=32)
+       trainDNN.trainWithKfolds(DNN_model,kfolds=2,n_frames=1, bs=16, num_epochs=500)

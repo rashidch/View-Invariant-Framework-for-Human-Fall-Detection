@@ -38,10 +38,11 @@ class classifier():
         #predict using this function if 2d data in alphapose format i.e., if pose2d_size=24
         points = keypoints.numpy()
         points = normalize_min_(points)
-        if self.cfg.MODEL[:3]=='dnn':
-            points = points.reshape(1,self.pose2d_size)
-        else:
-            points = points.reshape(1,self.n_frames,self.pose2d_size)
+        #if self.cfg.MODEL[:3]=='dnnnet':
+        points = points.reshape(1,self.pose2d_size)
+        #else:
+        #points = points.reshape(1,self.n_frames,self.pose2d_size)
+        #print(points.shape)
         actres = self.model.exe(points,self.opt.device,self.holder)
         return actres[1]
     
@@ -70,17 +71,10 @@ class classifier():
         
         if self.cfg.MODEL[:3]=='net':
             points2d = points2d.reshape(1,self.pose2d_size)
-            points3d =   points3d.reshape(1,self.pose3d_size)
-        #else:
-        #points = points.reshape(1,self.n_frames,self.pose2d_size)
+            points3d = points3d.reshape(1,self.pose3d_size)
         actres = self.model.exe(points2d, points3d,self.opt.device,self.holder)
         return actres[3]
 
-
-    def drawTagToImg(self,img, prediction):
-        tag = self.cfg.tagI2W[prediction]
-        img = cv2.putText(img, tag, (800,40), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,0,255), 2)
-        return img
 
 class PoseEstimation():
        
