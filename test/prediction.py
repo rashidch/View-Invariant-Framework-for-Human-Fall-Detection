@@ -45,14 +45,15 @@ class classifier():
         actres = self.model.exe(points,self.opt.device,self.holder)
         return actres[1]
     
-    def predict_2d(self, keypoints):
+    def predict_2d(self, human2d):
         #predict using this function if 2d data in h3.6m format i.e., if pose2d_size=34
-        points = keypoints.numpy()
-        points = normalize_min_(points)
-        #if self.cfg.MODEL[:3]=='dnn':
+        
+        points = normalize_min_(human2d)
+        # single frame
         if self.cfg.MODEL[:3]=='dnn':
             points = points.reshape(1,self.pose2d_size)
         else:
+            #if sequence of frames
             points = points.reshape(1,self.n_frames,self.pose2d_size)
         actres = self.model.exe(points,self.opt.device,self.holder)
         return actres[1]
@@ -70,8 +71,8 @@ class classifier():
         if self.cfg.MODEL[:3]=='net':
             points2d = points2d.reshape(1,self.pose2d_size)
             points3d =   points3d.reshape(1,self.pose3d_size)
-        else:
-            points = points.reshape(1,self.n_frames,self.pose2d_size)
+        #else:
+        #points = points.reshape(1,self.n_frames,self.pose2d_size)
         actres = self.model.exe(points2d, points3d,self.opt.device,self.holder)
         return actres[3]
 

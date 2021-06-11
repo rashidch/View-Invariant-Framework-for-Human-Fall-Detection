@@ -5,7 +5,7 @@ import os
 import sys
 import time
 import copy
-
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow.compat.v1 as tf
@@ -256,6 +256,86 @@ def correct_3D(poses3d_input,poses2d_normalized):
 
     return poses3d
 
+def project_point_radial(P, R, T, f, c, k, p):
+    """
+    Args
+    P: Nx3 points in world coordinates
+    R: 3x3 Camera rotation matrix
+    T: 3x1 Camera translation parameters
+    f: 2x1 (scalar) Camera focal length
+    c: 2x1 Camera center
+    k: 3x1 Camera radial distortion coefficients
+    p: 2x1 Camera tangential distortion coefficients
+    Returns
+    Proj: Nx2 points in pixel space
+    D: 1xN depth of each point in camera space
+    radial: 1xN radial distortion per point
+    tan: 1xN tangential distortion per point
+    r2: 1xN squared radius of the projected points before distortion
+    """
+
+    # P is a matrix of 3-dimensional points
+    assert len(P.shape) == 2
+    assert P.shape[1] == 3
+
+    N = P.shape[0]
+    X = R.dot(P.T - T)  # rotate and translate
+    XX = X[:2, :] / X[2, :]  # 2x16
+    r2 = XX[0, :] ** 2 + XX[1, :] ** 2  # 16,
+
+    radial = 1 + np.einsum('ij,ij->j', np.tile(k, (1, N)), np.array([r2, r2 ** 2, r2 ** 3]))  # 16,
+    tan = p[0] * XX[1, :] + p[1] * XX[0, :]  # 16,
+
+    tm = np.outer(np.array([p[1], p[0]]).reshape(-1), r2)  # 2x16
+
+    XXX = XX * np.tile(radial + tan, (2, 1)) + tm  # 2x16
+
+    Proj = (f * XXX) + c  # 2x16
+    Proj = Proj.T
+
+    D = X[2, ]
+
+    return Proj, D, radial, tan, r2
 
 
+def find_centroid_single(skeletons):
+    skeleton_test=skeletons.reshape(int(51/3),3)
+    centroid=np.mean(skeleton_test, axis=0)
+    
+    return centroid
+
+def rotate_single(origin, skeletons, angle):
+    """
+    Rotate a point counterclockwise by a given angle around a given origin.
+    The angle should be given in radians.
+    """
+    joints = []
+    skeleton_test=skeletons.reshape(int(51/3),3)
+    angle_xy,angle_xz,angle_yz=math.radians(angle[0]),math.radians(angle[1]),math.radians(angle[2])
+
+    for j,join in enumerate(skeleton_test):
+        ox, oy,oz = origin[0],origin[1],origin[2]
+        px, py,pz = join[0],join[1],join[2]
+
+        #Rotation XY
+        qx = ox + math.cos(angle_xy) * (px - ox) - math.sin(angle_xy) * (py - oy)
+        qy = oy + math.sin(angle_xy) * (px - ox) + math.cos(angle_xy) * (py - oy)
+        px, py,pz=qx,qy,pz
+
+        #Rotation XZ
+        qx = ox + math.cos(angle_xz) * (px - ox) - math.sin(angle_xz) * (pz - oz)
+        qz = oz + math.sin(angle_xz) * (px - ox) + math.cos(angle_xz) * (pz - oz)
+        px, py,pz=qx,py,qz
+
+        #Rotation YZ
+        qy = oy + math.cos(angle_yz) * (py - oy) - math.sin(angle_yz) * (pz - oz)
+        qz = oz + math.sin(angle_yz) * (py - oy) + math.cos(angle_yz) * (pz - oz)
+        px, py,pz=px,qy,qz
+
+        joints.append(px)
+        joints.append(py)
+        joints.append(pz)
+
+    rotated=np.asarray(joints)
+    return rotated
 

@@ -4,8 +4,6 @@ import torch.nn.functional as F
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-
-
 def get_model(name,tagI2W, n_frames=5, pose2d_size=34, pose3d=51):
     if(name =='net'):
         #print("loaded Net model")
@@ -14,7 +12,7 @@ def get_model(name,tagI2W, n_frames=5, pose2d_size=34, pose3d=51):
         print("loaded dnntiny model")
         return dnntiny(input_dim=pose2d_size*n_frames, class_num=len(tagI2W))
     elif(name == 'FallModel'):
-        print("loaded FallModel model")
+        #print("loaded FallModel model")
         return FallModel(input_dim=pose2d_size, class_num=len(tagI2W))
     elif(name == 'FallNet'):
         print("loaded FallNet model")

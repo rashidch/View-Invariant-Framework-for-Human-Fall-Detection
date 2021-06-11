@@ -30,7 +30,7 @@ class SinglePose2dDataset(Dataset):
         
         # get csv file path
         curr_dir = os.getcwd()
-        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/taoyuan_angle1_2D_Original.csv')
+        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/data_ivan/taoyuan_angle1_2D_Originl.csv')
         
         # list for storing data and labels
         data  = []
@@ -48,7 +48,7 @@ class SinglePose2dDataset(Dataset):
 
         KP_df['pos_class'] = KP_df['pos_class'].astype('category').cat.codes
         # skipping (0-3) colomns , return values of all rows and columns from 4 to last
-        features = KP_df.iloc[:,6:].values
+        features = KP_df.iloc[:,5:].values
         #return values of pose_class 
         pose_class = KP_df['pos_class'].values
         # normalize keypoints 
@@ -173,7 +173,7 @@ class SinglePose3dDataset(Dataset):
         
         # get csv file path
         curr_dir = os.getcwd()
-        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/taoyuan_angle1_3D_Original.csv')
+        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/data_ivan/taoyuan_angle1_3D_Original.csv')
         
         # list for storing data and labels
         data  = []
@@ -218,6 +218,7 @@ class SinglePose3dDataset(Dataset):
     # min-max normalization to scale the x, y coordinates in range (0-1) 
     @staticmethod
     def normalize_min_(pose:np.ndarray):
+        print(pose.shape)
         pose = pose.reshape(len(pose),-1,3)
         for i in range(len(pose)):
             xmin = np.min(pose[i,:,0]) 

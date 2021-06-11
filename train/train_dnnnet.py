@@ -16,7 +16,7 @@ from plot_statics import plot_Statistics
 
 currTime = time.asctime( time.localtime(time.time()))[4:-5]
 currTime = currTime.split(' ')
-currTime = currTime[0]+'_'+currTime[1]+'_'+currTime[2]
+currTime = currTime[0]+'_'+currTime[1]+currTime[2]
 
 class trainDNN():
     def __init__(self):
@@ -130,9 +130,9 @@ class trainDNN():
                 f_score = f1_score(class_tensor.numpy(), pred_tensor.numpy(), average=None)
                 
                 print('{} : Loss: {:.4f}, Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
-                #print('{} : Confusion Matrix: {}'.format(phase, conf_mat))
-                #print('{} : Precision per class: {}'.format(phase, np.round(precision,4)))
-                #print('{} : Recall per class: {}'.format(phase, np.round(recall,4)))
+                print('{} : Confusion Matrix: {}'.format(phase, conf_mat))
+                print('{} : Precision per class: {}'.format(phase, np.round(precision,4)))
+                print('{} : Recall per class: {}'.format(phase, np.round(recall,4)))
                 print('{} : F1_Score per class: {}'.format(phase, np.round(f_score,4)))
                 print()
                 
@@ -141,7 +141,7 @@ class trainDNN():
                     loss_  = epoch_loss
                     conf_valid = conf_mat
                     #best_model_wts = copy.deepcopy(model.state_dict())
-                    trainDNN.save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints/dnn2d3d_'+currTime)
+                    trainDNN.save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints/lstm2d3d_'+currTime)
                 
                 if phase== 'train' and epoch_acc>best_acc:
                     conf_train = conf_mat
@@ -151,7 +151,7 @@ class trainDNN():
         time_elapsed = time.time() - since
         print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed //60, time_elapsed %60))
         print('Best val Acc: {:4f}'.format(epoch_acc))
-        
+        trainDNN.save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints/dnn2d3d_'+currTime)
         return history, model, conf_train, conf_valid
     @staticmethod
     def save_model(model, optimizer, loss, acc, epoch, save_path):
@@ -171,7 +171,7 @@ class trainDNN():
 
 if __name__ == '__main__':
 
-    DNN_model   = Net(class_num=2, input2d=34, input3d=51, ).to(device)
+    DNN_model   = Net(class_num=2, input2d=34, input3d=51).to(device)
     #get test dataloaders
     dataloader, dataset_size = SinglePose2dDataset.get2dData(reshape=False, bs=16,n_frames=1)
     dataloader3d, dataset3d_size = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
@@ -179,6 +179,6 @@ if __name__ == '__main__':
     print(dir(dataloader3d['train']), dataset3d_size)
     #train the model
     history, model, conf_train, conf_valid = trainDNN.train(DNN_model, dataloader, dataset_size, 
-    dataloader3d, dataset3d_size, num_epochs=500)
+    dataloader3d, dataset3d_size, num_epochs=1000)
     #plot the model statistics 
-    #plot_Statistics(history,conf_train, conf_valid,name='dnntiny')
+    plot_Statistics(history,conf_train, conf_valid,name='dnn2d3d',epochs=1000)

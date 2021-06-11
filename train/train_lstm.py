@@ -121,7 +121,7 @@ def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
                 loss_  = epoch_loss
                 conf_valid = conf_mat
                 #best_model_wts = copy.deepcopy(model.state_dict())
-                save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r"checkpoints/lstm2_"+currTime)
+                save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r"checkpoints/lstm2d_"+currTime)
             
             if phase== 'train' and epoch_acc>best_acc:
                 conf_train = conf_mat
@@ -131,7 +131,7 @@ def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed //60, time_elapsed %60))
     print('Best val Acc: {:4f}'.format(epoch_acc))
-    
+    save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r"checkpoints/lstm2_"+currTime)
     return history, model, conf_train, conf_valid
 
 def save_model(model, optimizer, loss, acc, epoch, save_path):
@@ -163,4 +163,4 @@ if __name__ == '__main__':
     #train the model
     history, model, conf_train, conf_valid = train_model(LSTM_model, dataloaders, dataset_sizes,num_epochs=1000)
     #plot the model statistics 
-    plot_Statistics(history,conf_train, conf_valid,name = 'lstm2',epochs=1000)
+    plot_Statistics(history,conf_train, conf_valid,name='lstm2d',epochs=1000)
