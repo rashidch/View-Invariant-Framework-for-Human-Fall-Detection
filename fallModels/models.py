@@ -16,9 +16,12 @@ def get_model(name,tagI2W, n_frames=5, pose2d_size=34, pose3d=51):
     elif(name == 'dnntiny3d'):
         print("loaded dnntiny3d model")
         return dnntiny(input_dim=pose3d*n_frames, class_num=len(tagI2W))
-    elif(name == 'FallModel'):
-        print("loaded FallModel model")
+    elif(name == 'lstm2d'):
+        print("loaded lstm 2d model")
         return FallModel(input_dim=pose2d_size, class_num=len(tagI2W))
+    elif(name == 'lstm3d'):
+        print("loaded lstm3d model")
+        return FallModel(input_dim=pose3d, class_num=len(tagI2W))
     elif(name == 'FallNet'):
         print("loaded FallNet model")
         return FallNet(input_dim=pose2d_size, class_num=len(tagI2W))

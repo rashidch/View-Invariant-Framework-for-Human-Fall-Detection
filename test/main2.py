@@ -2,7 +2,13 @@ import argparse
 import torch
 import os
 import time
-from test.pred_frame import predictSequence, predict2dFrame, predict2d3dFrame, predH36mSeq
+
+import os,sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+
+from test.pred_frame import predictSequence, predict2dFrame, predict3dFrame, predict2d3dFrame, predH36mSeq,predH36mSeq3d
 from source.alphapose.utils.config import update_config
 
 """----------------------------- Demo options -----------------------------"""
@@ -46,12 +52,16 @@ args.device = torch.device("cuda:" + str(args.gpus[0]) if args.gpus[0] >= 0 else
 if __name__ == '__main__':
 
     # set prediction type
-    predType = '2d'
+    predType = 'lstm2d'
     if predType == 'seq':
         predictSequence(args, cfg)
-    elif predType == 'seqh36m':
+    elif predType == 'lstm2d':
         predH36mSeq(args, cfg)
+    elif predType == 'lstm3d':
+        predH36mSeq3d(args, cfg)
     elif predType == '2d':
         predict2dFrame(args, cfg)
+    elif predType == '3d':
+        predict3dFrame(args, cfg)
     elif predType == '2d3d':
         predict2d3dFrame(args, cfg)

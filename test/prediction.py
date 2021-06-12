@@ -11,6 +11,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
+import cv2
 from fallModels.normalize import normalize_min_, normalize3d_min_
 from fallModels.models import get_model
 from test.classifier_config.apis import get_classifier_cfg
