@@ -5,13 +5,17 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
-execResjson = "find -type f -iname 'taoyuan.json' "
+execResjson = "find -type f -iname 'multicam_full_h36m.json' "
 
 #alphaI2W = [ "nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
 #"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
 
-alphaI2W = ["LShoulder","RShoulder", "LElbow","RElbow",\
-"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
+#alphaI2W = ["LShoulder","RShoulder", "LElbow","RElbow",\
+#"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
+
+h36mI2W = ["Hip", "RHip", "RKnee", "RFoot", "LHip", "LKnee", "LFoot", "Spine",\
+"Thorax","Nose", "Head", "LShoulder","LElbow", "LWrist", "RShoulder", "RElbow", "RWrist"]
+
 
 #alphaI2W = ["Nose", "Neck", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist", "RHip",\
 #           "RKnee", "RAnkle", "LHip", "LKnee","LAnkle", "REye", "LEye", "REar","LEar"]
@@ -21,12 +25,13 @@ def cleanJson(jslist:list):
     # jsitem = jslist[0]
     dicts =[]
     for jsitem in jslist:
-        #print('len of keypoints list', len(jsitem['keypoints']))
-        itKeypoints = np.array(jsitem['keypoints']).reshape(-1,3)
-        itKeypoints = itKeypoints[5:]
+        #print('keypoints list', len(jsitem['keypoints']))
+        itKeypoints = np.array(jsitem['keypoints']).reshape(-1,2)
+        #itKeypoints = itKeypoints[5:]
         print('keypoints:',itKeypoints.shape)
         idx = jsitem['idx']
         imgid= jsitem['image_id']
+        #print('id', imgid)
         box = jsitem['box']
         score = jsitem['score']
         pose_class = jsitem['pose_class'].split('_')[0]
@@ -37,8 +42,8 @@ def cleanJson(jslist:list):
             idx= idx[0]
         d={'image_id': imgid, 'idx':idx, 'pos_class':pose_class, 'box':box, 'score':score}
         for i,xys in enumerate(itKeypoints):
-            d[alphaI2W[i]+'_x'] = xys[0]
-            d[alphaI2W[i]+'_y'] = xys[1]
+            d[h36mI2W[i]+'_x'] = xys[0]
+            d[h36mI2W[i]+'_y'] = xys[1]
         dicts.append(d)
     return dicts
 

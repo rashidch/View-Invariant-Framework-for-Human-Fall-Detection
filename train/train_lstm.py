@@ -3,35 +3,20 @@ import numpy as np
 import time
 import copy
 from collections import defaultdict
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 
 import torch
 import torch.nn as nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
-from fallModels.models import FallModel, DNN_tiny
-from dataloader import prepare_data
+from fallModels.models import FallModel
+from train.dataloader import SinglePose2dDataset
+from train.plot_statics import plot_Statistics
 
-def save_model(model, optimizer, loss, acc, epoch, save_path):
-    
-    #base_dir = os.path.basename(os.getcwd())
-    
-    #if base_dir =='train':
-    #parent_dir = os.path.dirname(os.getcwd())
-    #os.chdir(parent_dir)
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-    print('SAVING EPOCH %d'%epoch)
-    filename = 'epoch_%d'%epoch + '_loss_%f.pth'%loss
-    SAVE_FILE = os.path.join(save_path,filename)
-    torch.save({
-            'epoch': epoch,
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'loss': loss,
-            'acc':  acc,
-            }, SAVE_FILE)
+currTime = time.asctime(time.localtime(time.time()))[4:-5]
+currTime = currTime.split(" ")
+currTime = currTime[0]+"_"+currTime[1]+"_"+currTime[2]
+
 
 #training function
 def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
@@ -44,7 +29,7 @@ def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
     #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,patience=5, factor=0.1,verbose=True)
     
     since = time.time()
-    best_model_wts = copy.deepcopy(model.state_dict())
+    #best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
     loss_ = 100
     conf_train = 0.0
@@ -110,7 +95,7 @@ def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
             #epoch loss and accuracy
             epoch_loss = running_loss / dataset_sizes[phase]
             epoch_acc  = running_corrects.double() / dataset_sizes[phase]
-            history[phase].append((epoch_loss, epoch_acc, ))
+            history[phase].append((epoch_loss, epoch_acc ))
             
             if phase=='valid':
                 scheduler.step()
@@ -125,9 +110,9 @@ def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
             f_score = f1_score(class_tensor.numpy(), pred_tensor.numpy(), average=None)
             
             print('{} : Loss: {:.4f}, Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
-            #print('{} : Confusion Matrix: {}'.format(phase, conf_mat))
-            #print('{} : Precision per class: {}'.format(phase, np.round(precision,4)))
-            #print('{} : Recall per class: {}'.format(phase, np.round(recall,4)))
+            print('{} : Confusion Matrix: {}'.format(phase, conf_mat))
+            print('{} : Precision per class: {}'.format(phase, np.round(precision,4)))
+            print('{} : Recall per class: {}'.format(phase, np.round(recall,4)))
             print('{} : F1_Score per class: {}'.format(phase, np.round(f_score,4)))
             print()
             
@@ -136,7 +121,7 @@ def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
                 loss_  = epoch_loss
                 conf_valid = conf_mat
                 #best_model_wts = copy.deepcopy(model.state_dict())
-                save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints_fallmodel/act_dnntiny_5')
+                save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r"checkpoints/lstm2d_"+currTime)
             
             if phase== 'train' and epoch_acc>best_acc:
                 conf_train = conf_mat
@@ -146,84 +131,36 @@ def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed //60, time_elapsed %60))
     print('Best val Acc: {:4f}'.format(epoch_acc))
-    
+    save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r"checkpoints/lstm2_"+currTime)
     return history, model, conf_train, conf_valid
 
-def plot_Statistics(history, conf_train, conf_valid):
+def save_model(model, optimizer, loss, acc, epoch, save_path):
 
-    train_acc  = []
-    train_loss = []
-    val_acc    = []
-    val_loss   = []
-    for train_item, val_item in zip(history['train'],history['valid']):
-        
-        val_loss.append(val_item.__getitem__(0))
-        val_acc.append(val_item.__getitem__(1).cpu().detach().numpy())
-        
-        train_loss.append(train_item.__getitem__(0))
-        train_acc.append(train_item.__getitem__(1).cpu().detach().numpy())
-    
-    params = {'legend.fontsize': 'x-large',
-         'axes.labelsize': 'x-large',
-         'axes.titlesize':'x-large',
-         'xtick.labelsize':'x-large',
-         'ytick.labelsize':'x-large'}
-    plt.rcParams.update(params)
-
-
-    num_epochs=range(1000)
-    plt.figure(figsize=(12, 6))
-    plt.plot(num_epochs, train_acc, label='Training Accuracy')
-    plt.plot(num_epochs, val_acc, label='Validation Accuracy')
-    plt.legend(loc='lower right')
-    plt.title('Training and Validation Accuracy', fontsize=18)
-    plt.xlabel('Epochs')
-    plt.ylabel('Accuracy')
-    plt.savefig('plots/dnntiny_seq5_acc.jpg')
-    plt.show()
-
-    num_epochs=range(1000)
-    plt.figure(figsize=(12, 6))
-    plt.plot(num_epochs, train_loss, label='Training Loss')
-    plt.plot(num_epochs, val_loss, label='Validation Loss')
-    plt.legend(loc='upper right')
-    plt.title('Training and Validation Loss')
-    plt.xlabel('Epochs')
-    plt.ylabel('Accuracy')
-    plt.savefig('plots/dnntiny_seq5_loss.jpg')
-    plt.show()
-
-    #set the size of figure 542129345
-    plt.figure(figsize=(8,8))
-    #normalize each column (class) with total datapoints in that column  
-    conf_train = conf_train.astype('float')/conf_train.sum(axis=1)*100
-    #plot confusion matrix 
-    p=sns.heatmap(conf_train, xticklabels=['Fall','Stand','Tie'], yticklabels=['Fall','Stand','Tie'],
-                cbar=False, annot=True, cmap='coolwarm',robust=True, fmt='.1f',annot_kws={'size':20})
-    plt.title('Training matrix: Actual labels Vs Predicted labels')
-    plt.savefig('plots/dnntiny_seq5_train_cf.png')
-
-    #set the size of figure 
-    plt.figure(figsize=(8,8))
-    #normalize each column (class) with total datapoints in that column  
-    conf_valid = conf_valid.astype('float')/conf_valid.sum(axis=1)*100
-    #plot confusion matrix 
-    p=sns.heatmap(conf_valid, xticklabels=['Fall','Stand','Tie'], yticklabels=['Fall','Stand','Tie'],
-                cbar=False, annot=True, cmap='coolwarm',robust=True, fmt='.1f',annot_kws={'size':20})
-    plt.title('Validation matrix: Actual labels vs Predicted labels')
-    plt.savefig('plots/dnntiny_seq5_valid_cf.png')
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        print("SAVING EPOCH %d" % epoch)
+        filename = "epoch_%d" % epoch + "_loss_%f.pth" % loss
+        SAVE_FILE = os.path.join(save_path, filename)
+        torch.save(
+            {
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+                "loss": loss,
+                "acc": acc,
+            },
+            SAVE_FILE,
+        )
 
 if __name__ == '__main__':
 
-    LSTM_model   = FallModel(input_dim=24, class_num=2).to(device)
-    #DNN_model   = FallModel(input_dim=24, class_num=2).to(device)
-    total_params = sum(p.numel() for p in LSTM_model.parameters() if p.requires_grad)
-    print('Total Model Parameters:',total_params)
-
+    LSTM_model   = FallModel(input_dim=34, class_num=2).to(device)
+    #total_params = sum(p.numel() for p in LSTM_model.parameters() if p.requires_grad)
+    #print('Total Model Parameters:',total_params)
     #get test dataloaders
-    dataloaders, dataset_sizes = prepare_data(bs=32, seq_len=5)
+    dataloaders, dataset_sizes = SinglePose2dDataset.get2dData(reshape=False,n_frames=5,bs=32)
     print("dataset size", dataset_sizes)
     #train the model
-    history, model, conf_train, conf_valid = train_model(LSTM_model, dataloaders, dataset_sizes,num_epochs=100)
+    history, model, conf_train, conf_valid = train_model(LSTM_model, dataloaders, dataset_sizes,num_epochs=1000)
     #plot the model statistics 
-    #plot_Statistics(history,conf_train, conf_valid)
+    plot_Statistics(history,conf_train, conf_valid,name='lstm2d',epochs=1000)

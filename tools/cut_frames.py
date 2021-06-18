@@ -45,7 +45,7 @@ def FrameCapture(path):
         success, image = vidObj.read() 
         if success:
             # Saves the frames with frame-count 
-            cv2.imwrite("examples/demo/vis"+str(count)+".jpg", image) 
+            cv2.imwrite("/outputs/lstm2d/AngleA"+str(count)+".jpg", image) 
   
             count += 1
         else:
@@ -55,4 +55,4 @@ def FrameCapture(path):
 if __name__ == '__main__': 
   
     # Calling the function 
-    FrameCapture("examples/demo/1.mp4") 
+    FrameCapture("/outputs/lstm2d/AngleA.avi") 
