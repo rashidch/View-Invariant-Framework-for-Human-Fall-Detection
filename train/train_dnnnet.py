@@ -11,8 +11,8 @@ import torch.nn as nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from fallModels.models import Net, dnntiny
-from dataloader import SinglePose2dDataset, SinglePose3dDataset
-from plot_statics import plot_Statistics
+from train.dataloader import SinglePose2dDataset, SinglePose3dDataset
+from train.plot_statics import plot_Statistics
 
 currTime = time.asctime( time.localtime(time.time()))[4:-5]
 currTime = currTime.split(' ')
@@ -141,7 +141,7 @@ class trainDNN():
                     loss_  = epoch_loss
                     conf_valid = conf_mat
                     #best_model_wts = copy.deepcopy(model.state_dict())
-                    trainDNN.save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints/lstm2d3d_'+currTime)
+                    trainDNN.save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints/dnn2d3d_'+currTime)
                 
                 if phase== 'train' and epoch_acc>best_acc:
                     conf_train = conf_mat
@@ -153,6 +153,8 @@ class trainDNN():
         print('Best val Acc: {:4f}'.format(epoch_acc))
         trainDNN.save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r'checkpoints/dnn2d3d_'+currTime)
         return history, model, conf_train, conf_valid
+   
+   
     @staticmethod
     def save_model(model, optimizer, loss, acc, epoch, save_path):
     
@@ -173,12 +175,12 @@ if __name__ == '__main__':
 
     DNN_model   = Net(class_num=2, input2d=34, input3d=51).to(device)
     #get test dataloaders
-    dataloader, dataset_size = SinglePose2dDataset.get2dData(reshape=False, bs=16,n_frames=1)
-    dataloader3d, dataset3d_size = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
-    print(dir(dataloader['train']), dataset_size)
-    print(dir(dataloader3d['train']), dataset3d_size)
+    dataloader, dataset_size     = SinglePose2dDataset.get2dData(reshape=False, bs=32,n_frames=1)
+    dataloader3d, dataset3d_size = SinglePose3dDataset.get3dData(reshape=False, bs=32,n_frames=1)
+    #print(dataloader['train'], dataset_size)
+    #print(dataloader3d['train'], dataset3d_size)
     #train the model
     history, model, conf_train, conf_valid = trainDNN.train(DNN_model, dataloader, dataset_size, 
-    dataloader3d, dataset3d_size, num_epochs=1000)
+    dataloader3d, dataset3d_size, num_epochs=2000)
     #plot the model statistics 
-    plot_Statistics(history,conf_train, conf_valid,name='dnn2d3d',epochs=1000)
+    plot_Statistics(history,conf_train, conf_valid,name='dnn2d3d',epochs=2000)

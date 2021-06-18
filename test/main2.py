@@ -31,15 +31,15 @@ parser.add_argument('--flip', default=False, action='store_true',
                     help='enable flip testing')
 parser.add_argument('--vis_fast', dest='vis_fast',
                     help='use fast rendering', action='store_true', default=False)
-parser.add_argument('--save_out', type=str, default='outputs/dnn2d3d/AngleB.avi',
+parser.add_argument('--save_out', type=str, default='outputs/dnn2d_multicam/AngleA.avi',
                         help='Save display to video file.')
 parser.add_argument('--cam', dest='inputvideo', help='video-name', 
-                    default='examples/demo/test/Angle_B.mp4') 
-parser.add_argument('--transform', default=True, action='store_true',
+                    default='examples/demo/test/Angle_A.mp4') 
+parser.add_argument('--transform', default=False, action='store_true',
                     help='Do you want to transform the angle?')
 parser.add_argument('--transform_file', dest='transfile', help='transformation-camera-file',
                     default='examples/transformation_file/trans_Angle_B.pickle')
-parser.add_argument('--classifier', dest='classmodel', type=str, default='net',
+parser.add_argument('--classifier', dest='classmodel', type=str, default='dnntiny',
                     help='choose classifer model, defualt dnn model')
      
 args = parser.parse_args()

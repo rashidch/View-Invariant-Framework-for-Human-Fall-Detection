@@ -233,7 +233,7 @@ def predictSeq2(args, cfg):
     # get the name of video file
     im_name = cam_source.split("/")[-1]
 
-    n_frames = 5
+    n_frames = 1
     fps_time = 0
     pose2d_size = 34
     pose3d_size = 51
@@ -388,23 +388,18 @@ def predictSeq2(args, cfg):
         else:
             break
 
-    precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
-    recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
-    f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
+    #precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
+    #recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
+    #f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
 
-    #cm = confusion_matrix(np.asarray(groundtruth), np.asarray(prediction_result))
-    #cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
-    accuracy_ = cm.diagonal()
     precision_ = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
     recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
     f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
 
-    # print('{} : Confusion Matrix: {}'.format(phase, conf_mat))
-    print("Precision : {}".format(np.round(precision, 4)))
-    print("Recall : {}".format(np.round(recall, 4)))
-    print("F1_Score: {}".format(np.round(f_score, 4)))
+    #print("Precision : {}".format(np.round(precision, 4)))
+    #print("Recall : {}".format(np.round(recall, 4)))
+    #print("F1_Score: {}".format(np.round(f_score, 4)))
     print("\n")
-    #print("Accuracy per class : {}".format(np.round(accuracy_, 4)))
     print("Precision per class : {}".format(np.round(precision_, 4)))
     print("Recall per class : {}".format(np.round(recall_, 4)))
     print("F1_Score per class: {}".format(np.round(f_score_, 4)))
@@ -440,17 +435,18 @@ def predict2dFrame(args, cfg):
     n_frames = 1
     fps_time = 0
     pose2d_size = 34
+    pose3d_size = 51
     humanData = torch.zeros([n_frames, pose2d_size])
 
     # create objects of pose esimator and classifier class
     pose_estimator = PoseEstimation(args, cfg)
-    pose_predictor = classifier(args, n_frames, pose2d_size)
+    pose_predictor = classifier(args, n_frames, pose2d_size,pose3d_size = None)
     frameIdx = 0
     framenumber = -1
     groundtruth = []
     prediction_result = []
 
-    with open("examples/demo/test/labels" + im_name.split(".")[0] + ".pickle", "rb") as handle:
+    with open("examples/demo/test/labels/" + im_name.split(".")[0] + ".pickle", "rb") as handle:
         dictlabel = pickle.load(handle)
 
     while cap.isOpened():
