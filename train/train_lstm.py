@@ -14,7 +14,7 @@ sys.path.insert(0, parent_dir)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
-from fallModels.models import FallModel
+from fallModels.models import FallModel,FallModel3d
 from train.dataloader import SinglePose2dDataset
 from train.plot_statics import plot_Statistics
 

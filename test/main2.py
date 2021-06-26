@@ -35,12 +35,15 @@ parser.add_argument('--flip', default=False, action='store_true',
                     help='enable flip testing')
 parser.add_argument('--vis_fast', dest='vis_fast',
                     help='use fast rendering', action='store_true', default=False)
-parser.add_argument('--save_out', type=str, default='outputs/lstm2d/7.avi',
+parser.add_argument('--save_out', type=str, default='outputs/dnn2d3d_augmented/Angle F.avi',
                     help='Save display to video file.')
 parser.add_argument('--cam', dest='inputvideo', help='video-name',
-                    default='examples/demo/test/7.mp4')
-
-parser.add_argument('--classifier', dest='classmodel', type=str, default='fallmodel',
+                    default='examples/demo/test/Angle F.mp4')
+parser.add_argument('--transform', default=False, action='store_true',
+                    help='Do you want to transform the angle?')
+parser.add_argument('--transform_file', dest='transfile', help='transformation-camera-file',
+                    default='examples/transformation_file/Angle A.pickle')
+parser.add_argument('--classifier', dest='classmodel', type=str, default='net',
                     help='choose classifer model, defualt dnn model')
 
 args = parser.parse_args()
@@ -52,7 +55,7 @@ args.device = torch.device("cuda:" + str(args.gpus[0]) if args.gpus[0] >= 0 else
 if __name__ == '__main__':
 
     # set prediction type
-    predType = 'lstm2d'
+    predType = '2d3d'
     if predType == 'seq':
         predictSequence(args, cfg)
     elif predType == 'lstm2d':

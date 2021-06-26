@@ -165,7 +165,7 @@ if __name__ == '__main__':
     DNN_model   = dnntiny(input_dim=51, class_num=2).to(device)
     #get test dataloaders
     # dataloaders, dataset_sizes = SinglePose2dDataset.get2dData(reshape=False, bs=16,n_frames=1)
-    dataloader3d, dataset3d_sizes = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
+    dataloader3d, dataset3d_sizes = SinglePose3dDataset.get3dData(reshape=False, bs=128,n_frames=1)
     #print(dataloader, dataset_sizes)
     # print(dataloader3d, dataset3d_sizes)
     #train the model

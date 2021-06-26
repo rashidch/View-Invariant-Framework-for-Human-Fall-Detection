@@ -7,7 +7,8 @@ import os
 def plot_Statistics(history, conf_train, conf_valid, name, epochs=500):
     currTime = time.asctime(time.localtime(time.time()))[4:-5]
     currTime = currTime.split(' ')
-    currTime = currTime[0] + '_' + currTime[1] + '_' + currTime[2]
+    # currTime = currTime[0] + '_' + currTime[1] + '_' + currTime[2]
+    currTime = currTime[0] + '_' + currTime[1]
 
     train_acc = []
     train_loss = []

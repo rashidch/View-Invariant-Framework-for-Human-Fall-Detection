@@ -249,7 +249,7 @@ def predH36mSeq(args, cfg):
                 human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
                 human3d, human2d = transform3d_one(trans, human3d)
             else:
-                human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
+                human3d, human2d= inferencealphaposeto3d_one(_pose, input_type="array", need_2d=True)
 
             # print("pose",_pose)
             # print('2d Skeleton shape:',human2d.shape)
@@ -260,7 +260,7 @@ def predH36mSeq(args, cfg):
                 print('frameIdx in B1-->', frameIdx)
                 print('HumanData shape', humanData.shape)
                 humanData[frameIdx, :] = human2d.reshape(1, pose2d_size)
-                print('Human Data', humanData[frameIdx, :])
+                # print('Human Data', humanData[frameIdx, :])
                 frameIdx += 1
 
             # only predict the fall down action if the seqeunce lenght is 5
@@ -278,7 +278,7 @@ def predH36mSeq(args, cfg):
                     # get confidence and fall down class name
                     confidence = round(actres[predictions], 3)
                     action_name = tagI2W[predictions]
-                    # print("Confidence--> {},Action_Name-->{}".format(confidence, action_name))
+                    print("Confidence--> {},Action_Name-->{}".format(confidence, action_name))
                     frame = vis_frame(frame, pose, args)  # visulize the pose result
                     # render predicted class names on video frames
                     if action_name == 'Fall':
@@ -355,7 +355,6 @@ def predH36mSeq(args, cfg):
     out.release()
     cv2.destroyAllWindows()
 
-
 def predH36mSeq3d(args, cfg):
     '''
         this function takes skeleton in h36m format and stack the frames to make sequence
@@ -419,13 +418,13 @@ def predH36mSeq3d(args, cfg):
                 continue
             # print('original pose',pose)
             _pose = pose['result'][0]['keypoints'].cpu().numpy().reshape(34, )
-            # print("pose",_pose)
-
             if (args.transform):
                 human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
                 human3d, human2d = transform3d_one(trans, human3d)
             else:
-                human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
+                human3d, human2d= inferencealphaposeto3d_one(_pose, input_type="array", need_2d=True)
+
+            # print("pose",_pose)
             # print('2d Skeleton shape:',human2d.shape)
             # print('3d Skeleton shape:',human3d.shape)
 
@@ -434,7 +433,7 @@ def predH36mSeq3d(args, cfg):
                 print('frameIdx in B1-->', frameIdx)
                 print('HumanData shape', humanData.shape)
                 humanData[frameIdx, :] = human3d.reshape(1, pose3d_size)
-                print('Human Data', humanData[frameIdx, :])
+                # print('Human Data', humanData[frameIdx, :])
                 frameIdx += 1
 
             # only predict the fall down action if the seqeunce lenght is 5
@@ -452,7 +451,7 @@ def predH36mSeq3d(args, cfg):
                     # get confidence and fall down class name
                     confidence = round(actres[predictions], 3)
                     action_name = tagI2W[predictions]
-                    # print("Confidence--> {},Action_Name-->{}".format(confidence, action_name))
+                    print("Confidence--> {},Action_Name-->{}".format(confidence, action_name))
                     frame = vis_frame(frame, pose, args)  # visulize the pose result
                     # render predicted class names on video frames
                     if action_name == 'Fall':

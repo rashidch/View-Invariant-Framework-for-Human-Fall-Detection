@@ -14,7 +14,7 @@ sys.path.insert(0, parent_dir)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
-from fallModels.models import FallModel
+from fallModels.models import FallModel,FallModel3d
 from train.dataloader import SinglePose3dDataset
 from train.plot_statics import plot_Statistics
 
@@ -125,7 +125,7 @@ def train_model(model, dataloaders, dataset_sizes, num_epochs=3000):
                 loss_ = epoch_loss
                 conf_valid = conf_mat
                 # best_model_wts = copy.deepcopy(model.state_dict())
-                save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r"checkpoints/lstm2_" + currTime)
+                save_model(model, optimizer, loss_, epoch_acc, epoch_, save_path=r"checkpoints/lstm3d_" + currTime)
 
             if phase == 'train' and epoch_acc > best_acc:
                 conf_train = conf_mat
@@ -158,7 +158,7 @@ def save_model(model, optimizer, loss, acc, epoch, save_path):
 
 
 if __name__ == '__main__':
-    LSTM_model = FallModel(input_dim=51, class_num=2).to(device)
+    LSTM_model = FallModel3d(input_dim=51, class_num=2).to(device)
     # total_params = sum(p.numel() for p in LSTM_model.parameters() if p.requires_grad)
     # print('Total Model Parameters:',total_params)
     # get test dataloaders
@@ -169,4 +169,4 @@ if __name__ == '__main__':
     # train the model
     history, model, conf_train, conf_valid = train_model(LSTM_model, dataloader3d, dataset3d_sizes, num_epochs=500)
     # plot the model statistics
-    plot_Statistics(history, conf_train, conf_valid, name='lstm2', epochs=500)
+    plot_Statistics(history, conf_train, conf_valid, name='lstm3', epochs=500)

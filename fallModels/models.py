@@ -21,7 +21,7 @@ def get_model(name,tagI2W, n_frames=5, pose2d_size=34, pose3d=51):
         return FallModel(input_dim=pose2d_size, class_num=len(tagI2W))
     elif(name == 'lstm3d'):
         print("loaded lstm3d model")
-        return FallModel(input_dim=pose3d, class_num=len(tagI2W))
+        return FallModel3d(input_dim=pose3d, class_num=len(tagI2W))
     elif(name == 'FallNet'):
         print("loaded FallNet model")
         return FallNet(input_dim=pose2d_size, class_num=len(tagI2W))
@@ -141,6 +141,27 @@ class FallModel(torch.nn.Module):
         input_ = torch.Tensor(input_).to(device)
         return self.__call__(input_)
 
+
+class FallModel3d(torch.nn.Module):
+
+    def __init__(self, input_dim, class_num):
+        super(FallModel3d, self).__init__()
+        self.input = input_dim
+        self.num_layers = 3
+        self.hidden_state = 51
+        self.lstm = nn.LSTM(self.input, self.hidden_state, num_layers=self.num_layers, dropout=0.5, batch_first=True)
+        self.linear = nn.Sequential(nn.Linear(self.hidden_state, class_num), nn.ELU())
+        self.class_num = class_num
+
+    def forward(self, _input):
+        feature, _ = self.lstm(_input)
+        raw_preds = self.linear(feature[:, -1, :])
+        output_probs = F.softmax(raw_preds, dim=1)
+        return raw_preds, output_probs
+
+    def exe(self, input_, device, holder):
+        input_ = torch.Tensor(input_).to(device)
+        return self.__call__(input_)
 
 class FallNet(nn.Module):
     def __init__(self, input_dim=24, class_num=2):
