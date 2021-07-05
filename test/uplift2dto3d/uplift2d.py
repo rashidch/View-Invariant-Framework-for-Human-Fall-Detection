@@ -17,7 +17,7 @@ from source3d.src import procrustes
 from source3d.src import viz
 import glob
 import cdflib
-sys.argv = sys.argv[:1]
+#sys.argv = sys.argv[:1]
 
 import cv2
 import torch
@@ -153,7 +153,7 @@ model = LinearModel()
 model = model.cuda()
 model.apply(weight_init)
 #print(">>> total params: {:.2f}M".format(sum(p.numel() for p in model.parameters()) / 1000000.0))
-criterion = nn.MSELoss(size_average=True).cuda()
+criterion = nn.MSELoss(reduction='mean').cuda()
 optimizer = torch.optim.Adam(model.parameters(), lr=1.0e-3)
 
 #print(">>> loading ckpt from '{}'".format('source3d/checkpoint/test/ckpt_best.pth.tar'))

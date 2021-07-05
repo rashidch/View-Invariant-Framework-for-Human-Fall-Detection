@@ -4,12 +4,12 @@ import time
 
 import cv2
 import numpy as np
-from test.prediction import classifier
-from test.prediction import PoseEstimation
+from test.classificationModule import classifier
+from test.poseEstimationModule import PoseEstimation
 from test.vis import vis_frame
 
-from test.uplift2dto3d.get3d import inferencealphaposeto3d_one, transform3d_one
-from test.uplift2dto3d.uplift2d import *
+#from test.uplift2dto3d.get3d import inferencealphaposeto3d_one, transform3d_one
+#from test.uplift2dto3d.uplift2d import *
 
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.metrics import classification_report
@@ -50,7 +50,8 @@ class detectFall():
             return prediction, confidence
 
     def getScores(self,groundtruth,prediction_result):
-
+        
+        tagI2W = ["Fall", "Stand"]
         precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result),pos_label=0,average="binary")
         recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), pos_label=0,average="binary")
         f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), pos_label=0,average="binary")
