@@ -4,208 +4,119 @@ import time
 
 import cv2
 import numpy as np
-from test.prediction import classifier
-from test.prediction import PoseEstimation
+from test.classificationModule import classifier
+from test.poseEstimationModule import PoseEstimation
 from test.vis import vis_frame
-from test.utils import ResizePadding
 
-from test.uplift2dto3d.get3d import inferencealphaposeto3d_one, transform3d_one
-from test.uplift2dto3d.uplift2d import *
+#from test.uplift2dto3d.get3d import inferencealphaposeto3d_one, transform3d_one
+#from test.uplift2dto3d.uplift2d import *
 
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.metrics import classification_report
 
+class detectFall():
 
-def predictSeq1(args, cfg):
+    def __init__(self, args, cfg, n_frames, pose2d_size, pose3d_size):
 
-    """
+        self.args = args
+        self.cfg = cfg
+        self.n_frames =  n_frames
+        self.pose2d_size = pose2d_size
+        self.pose3d_size = pose3d_size
+        self.pose_estimator = PoseEstimation(self.args, self.cfg)
+        self.fallDetector = classifier(self.args, self.n_frames, self.pose2d_size, self.pose3d_size)
+        # load classifier model
+        self.fallDetector.load_model()
+
+    def getPose(self, image, im_name):
+               
+        # get the body keypoints for current frame
+        pose = self.pose_estimator.process(im_name, image)
+        if pose == None:
+            return None
+        human = pose["result"][0] 
+        return human["keypoints"].reshape(1, self.pose2d_size)
+
+    def predictFall(self,humanData):
+
+        with torch.no_grad():
+            #predict fall down action
+            actres = self.fallDetector.predict_action(humanData)
+            actres = actres.cpu().numpy().reshape(-1)
+            prediction = np.argmax(actres)
+            #get confidence and class name
+            confidence = round(actres[prediction], 3)
+            #frame = vis_frame(frame, pose, args)  # visulize the pose result
+            return prediction, confidence
+
+    def getScores(self,groundtruth,prediction_result):
+        
+        tagI2W = ["Fall", "Stand"]
+        precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result),pos_label=0,average="binary")
+        recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), pos_label=0,average="binary")
+        f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), pos_label=0,average="binary")
+        
+        #precision_ = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
+        #recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
+        #f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
+
+        print("Precision : {:0.2f}".format(np.round(precision, 2)))
+        print("Recall : {:0.2f}".format(np.round(recall, 2)))
+        print("F1_Score: {:0.2f}".format(np.round(f_score, 2)))
+        print("\n")
+    
+        #print("Precision per class : {}".format(np.round(precision_, 4)))
+        #print("Recall per class : {}".format(np.round(recall_, 4)))
+        #print("F1_Score per class: {}".format(np.round(f_score_, 4)))
+        print(classification_report(np.asarray(groundtruth), np.asarray(prediction_result), target_names=tagI2W))
+'''
+def predict2d(args, cfg):
+
+    
     1. This function takes 2d skeleton in alphapose format.
-    2. create a sequence of frames and input to lstm model
+    2. create a sequence of frames and input to dnn or lstm model
 
-    """
+    
 
     tagI2W = ["Fall", "Stand"]
-    cam_source = args.inputvideo
-
-    if type(cam_source) is str and os.path.isfile(cam_source):
-        # capture video file usign VideoCapture handler.
-        cap = cv2.VideoCapture(cam_source)
-        # get width and height of frame
-        frame_width = int(cap.get(3))
-        frame_height = int(cap.get(4))
-
-    output = args.save_out
-    if not os.path.exists(output):
-        os.makedirs(output)
-    # create video writer handler
-    out = cv2.VideoWriter(output, cv2.VideoWriter_fourcc("M", "J", "P", "G"), 20, (frame_width, frame_height))
-    # get the name of video file
-    im_name = cam_source.split("/")[-1]
-
-    n_frames = 5
-    fps_time = 0
-    pose2d_size = 34
-    pose3d_size = None
-    humanData = torch.zeros([n_frames, pose2d_size])
-
+    
+    
     # create objects of pose esimator and classifier class
     pose_estimator = PoseEstimation(args, cfg)
     pose_predictor = classifier(args, n_frames, pose2d_size, pose3d_size)
-    frameIdx = 0
-    framenumber = -1
-    groundtruth = []
-    prediction_result = []
+    
+    
 
-    with open("examples/demo/test/labels" + im_name.split(".")[0] + ".pickle", "rb") as handle:
-        dictlabel = pickle.load(handle)
-
-    while cap.isOpened():
-
-        ret, frame = cap.read()
-        if ret == True:
+    
 
             framenumber = framenumber + 1
             framenumber_ = "{:05d}".format(framenumber)
-            print("Frame number: ", framenumber_)
+            #print("Frame number: ", framenumber_)
 
-            # convert frame to RGB and resize with aspect ratio
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame = ResizePadding(frame, 320, 448)
-            image = frame.copy()
-            # get the body keypoints for current frame
-            pose = pose_estimator.process(im_name, image)
-
-            if pose == None:
-                # cv2.imshow(window_name, image)
-                continue
+           
+            
 
             # concatenate (N=5) frames to create a sequence of body keypoints
             if frameIdx != n_frames:
-                human = pose["result"][0]
-                humanData[frameIdx, :] = human["keypoints"][5:].view(1, pose2d_size)
-                frameIdx += 1
+                
+                
 
             # only predict the fall down action if the seqeunce lenght is 5
             if frameIdx == n_frames:
-
-                with torch.no_grad():
-                    # load classifier model
-                    pose_predictor.load_model()
-                    # predict fall down action
-                    actres = pose_predictor.predict_action(humanData)
-                    actres = actres.cpu().numpy().reshape(-1)
-                    # print(actres)
-                    predictions = np.argmax(actres)
-                    # print(predictions)
-                    # get confidence and fall down class name
-                    confidence = round(actres[predictions], 3)
-                    action_name = tagI2W[predictions]
-                    print("Confidence: {},Action_Name:{}".format(confidence, action_name))
-                    frame = vis_frame(frame, pose, args)  # visulize the pose result
-                    # render predicted class names on video frames
-                    if action_name == "Fall":
-                        frame_new = cv2.putText(
-                            frame,
-                            text="Falling",
-                            org=(340, 20),
-                            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                            fontScale=0.75,
-                            color=(255, 0, 0),
-                            thickness=2,
-                        )
-
-                    elif action_name == "Stand":
-                        frame_new = cv2.putText(
-                            frame,
-                            text="Standing",
-                            org=(340, 20),
-                            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                            fontScale=0.75,
-                            color=(255, 230, 0),
-                            thickness=2,
-                        )
-
-                    elif action_name == "Tie":
-                        frame = cv2.putText(
-                            frame,
-                            text="Tying",
-                            org=(340, 20),
-                            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                            fontScale=0.75,
-                            color=(255, 230, 0),
-                            thickness=2,
-                        )
-
-                    frame_new = cv2.putText(
-                        frame,
-                        text="FPS: %f" % (1 / (time.time() - fps_time)),
-                        org=(10, 20),
-                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=0.75,
-                        color=(255, 255, 255),
-                        thickness=2,
-                    )
-
-                    frame_new = frame_new[:, :, ::-1]
-                    fps_time = time.time()
-                    humanData[: n_frames - 1] = humanData[1:n_frames]
-                    frameIdx = n_frames - 1
-
-                    # set opencv window attributes
-                    window_name = "Fall Detection Window"
-                    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow(window_name, 720, 512)
-                    # Show Frame.
-                    cv2.imshow(window_name, frame_new)
-                    if cv2.waitKey(1) & 0xFF == ord("q"):
-                        break
-
-                    dim = (int(frame_width), int(frame_height))
-                    frame_new = cv2.resize(frame_new, dim, interpolation=cv2.INTER_AREA)
-                    out.write(frame_new.astype("uint8"))
-
-                    """Find recall precision and f1 score"""
-                    try:
-                        label = dictlabel[framenumber_]
-                        groundtruth.append(1 if label == "Stand" else 0)
-                        prediction_result.append(1 if action_name == "Stand" else 0)
-                        print("Label is: ", label)
-                        print("action_name is: ", action_name)
-                    except:
-                        pass
-
-        else:
-            break
-    precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
-    recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
-    f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
-    cm = confusion_matrix(np.asarray(groundtruth), np.asarray(prediction_result))
-    cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
-    accuracy_ = cm.diagonal()
-    precision_ = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
-    recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
-    f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
-
-    # print('{} : Confusion Matrix: {}'.format(phase, conf_mat))
-    print("Precision : {}".format(np.round(precision, 4)))
-    print("Recall : {}".format(np.round(recall, 4)))
-    print("F1_Score: {}".format(np.round(f_score, 4)))
-    print("\n")
-    print("Accuracy per class : {}".format(np.round(accuracy_, 4)))
-    print("Precision per class : {}".format(np.round(precision_, 4)))
-    print("Recall per class : {}".format(np.round(recall_, 4)))
-    print("F1_Score per class: {}".format(np.round(f_score_, 4)))
-    print(classification_report(np.asarray(groundtruth), np.asarray(prediction_result), target_names=tagI2W))
-
-    # Clear resource.
-    cap.release()
-    out.release()
-    cv2.destroyAllWindows()
-
-def predictSeq2(args, cfg):
+               
+                #print('before shape',humanData.shape)
+                #meanpose = 0
+                #for idx in range(n_frame):
+                #meanpose += humanData[idx, :]
+                #humData[0,:]= meanpose
+                #print('after shape',humData.shape)
+            
+'''
+def predictSeq(args, cfg):
 
     """
     this function takes skeleton in h36m format.
+    2. create a sequence of frames and input to lstm and dnn model
     """
 
     tagI2W = ["Fall", "Stand"]
@@ -388,21 +299,21 @@ def predictSeq2(args, cfg):
         else:
             break
 
-    #precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
-    #recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
-    #f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
+    precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), pos_label=0, average="binary")
+    recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result),pos_label=0, average="binary")
+    f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result),pos_label=0, average="binary")
 
-    precision_ = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
-    recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
-    f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
+    #precision_ = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
+    #recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
+    #f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
 
-    #print("Precision : {}".format(np.round(precision, 4)))
-    #print("Recall : {}".format(np.round(recall, 4)))
-    #print("F1_Score: {}".format(np.round(f_score, 4)))
+    print("Precision : {}".format(np.round(precision, 2)))
+    print("Recall : {}".format(np.round(recall, 2)))
+    print("F1_Score: {}".format(np.round(f_score, 2)))
     print("\n")
-    print("Precision per class : {}".format(np.round(precision_, 4)))
-    print("Recall per class : {}".format(np.round(recall_, 4)))
-    print("F1_Score per class: {}".format(np.round(f_score_, 4)))
+    #print("Precision per class : {}".format(np.round(precision_, 4)))
+    #print("Recall per class : {}".format(np.round(recall_, 4)))
+    #print("F1_Score per class: {}".format(np.round(f_score_, 4)))
     print(classification_report(np.asarray(groundtruth), np.asarray(prediction_result), target_names=tagI2W))
 
     # Clear resource.
@@ -413,7 +324,7 @@ def predictSeq2(args, cfg):
 def predict2dFrame(args, cfg):
 
     """
-    1. This function takes 2d skeleton in alphapose format.
+    1. This function takes 2d skeleton in h36m format.
     2. create a sequence of frames and input to dnn model
     """
     tagI2W = ["Fall", "Stand"]
@@ -570,33 +481,30 @@ def predict2dFrame(args, cfg):
                         label = dictlabel[framenumber_]
                         groundtruth.append(1 if label == "Stand" else 0)
                         prediction_result.append(1 if action_name == "Stand" else 0)
-                        print("Label is: ", label)
-                        print("action_name is: ", action_name)
+                        print("Ground Label is:", label)
+                        print("Predicted Label is:", action_name)
                     except:
                         pass
         else:
             break
     
-    precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
-    recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
-    f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average="binary")
+    precision = precision_score(np.asarray(groundtruth), np.asarray(prediction_result),pos_label=0,average="binary")
+    recall = recall_score(np.asarray(groundtruth), np.asarray(prediction_result),pos_label=0, average="binary")
+    f_score = f1_score(np.asarray(groundtruth), np.asarray(prediction_result),pos_label=0, average="binary")
 
-    cm = confusion_matrix(np.asarray(groundtruth), np.asarray(prediction_result))
-    cm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
-    accuracy_ = cm.diagonal()
-    precision_ = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
-    recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
-    f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
+    #precision_ = precision_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
+    #recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
+    #f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
 
-    # print('{} : Confusion Matrix: {}'.format(phase, conf_mat))
-    print("Precision : {}".format(np.round(precision, 4)))
-    print("Recall : {}".format(np.round(recall, 4)))
-    print("F1_Score: {}".format(np.round(f_score, 4)))
+    
+    print("Precision : {}".format(np.round(precision, 2)))
+    print("Recall : {}".format(np.round(recall, 2)))
+    print("F1_Score: {}".format(np.round(f_score, 2)))
     print("\n")
-    print("Accuracy per class : {}".format(np.round(accuracy_, 4)))
-    print("Precision per class : {}".format(np.round(precision_, 4)))
-    print("Recall per class : {}".format(np.round(recall_, 4)))
-    print("F1_Score per class: {}".format(np.round(f_score_, 4)))
+    
+    #print("Precision per class : {}".format(np.round(precision_, 4)))
+    #print("Recall per class : {}".format(np.round(recall_, 4)))
+    #print("F1_Score per class: {}".format(np.round(f_score_, 4)))
     print(classification_report(np.asarray(groundtruth), np.asarray(prediction_result), target_names=tagI2W))
 
     # Clear resource.

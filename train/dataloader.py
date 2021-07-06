@@ -30,7 +30,7 @@ class SinglePose2dDataset(Dataset):
         
         # get csv file path
         curr_dir = os.getcwd()
-        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/multicam_full_h36m.csv')
+        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/taoyuan.csv')
         
         # list for storing data and labels
         data  = []
@@ -173,7 +173,7 @@ class SinglePose3dDataset(Dataset):
         
         # get csv file path
         curr_dir = os.getcwd()
-        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/multicam_full_3D_Original.csv')
+        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/cam7_3D_Original.csv')
         
         # list for storing data and labels
         data  = []

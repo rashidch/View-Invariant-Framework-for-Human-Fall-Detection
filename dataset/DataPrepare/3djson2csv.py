@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
-execResjson = "find -type f -iname 'multicam_full_3D_Original.json' "
+execResjson = "find -type f -iname 'cam8_3D_Original.json' "
 
 #alphaI2W = [ "nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
 #"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
@@ -32,13 +32,14 @@ def cleanJson(jslist:list):
         imgid= jsitem['image_id']
         box = jsitem['box']
         score = jsitem['score']
+        visualize = jsitem['visualize']
         pose_class = jsitem['pose_class'].split('_')[0]
         if(len(idx)>1):
             # logger.debug('muti-idx: %s | %s'%(imgid,idx.__str__()))
             idx = idx[0][0]
         else:
             idx= idx[0]
-        d={'image_id': imgid, 'idx':idx, 'pos_class':pose_class, 'box':box, 'score':score}
+        d={'image_id': imgid, 'idx':idx, 'pos_class':pose_class, 'visualize' :visualize  ,'box':box, 'score':score}
         for i,xys in enumerate(itKeypoints):
             d[h36mI2W[i]+'_x'] = xys[0]
             d[h36mI2W[i]+'_y'] = xys[1]
