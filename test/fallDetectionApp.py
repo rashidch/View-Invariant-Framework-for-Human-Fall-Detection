@@ -27,8 +27,9 @@ parser.add_argument("--gpus",type=str,dest="gpus",default="0",
     help="choose which cuda device to use by index and input comma to use multi gpus, e.g. 0,1,2,3. (input -1 for cpu only)")
 parser.add_argument("--flip", default=False, action="store_true", help="enable flip testing")
 parser.add_argument("-vis","--vis_fast", dest="vis_fast", help="use fast rendering", action="store_true", default=False)
-parser.add_argument("--saveOut", type=str, default="outputs/camtest/B.avi", help="Save display to video file.")
-parser.add_argument("-c","--cam", dest="inputvideo", help="video-name", default="examples/demo/test/Angle_A.mp4")
+parser.add_argument("--saveOut", type=str, default="outputs/camtest/C.avi", help="Save display to video file.")
+parser.add_argument("-df","--dataFormat", type=str, default='h36m', help="Input Skeleton data format")
+parser.add_argument("-c","--cam", dest="inputvideo", help="video-name", default="examples/demo/test/Angle_C.mp4")
 parser.add_argument("--transform", default=True, action="store_true", help="Do you want to transform the angle?056")
 parser.add_argument("-tfile","--transform_file",dest="transfile",help="transformation-file",
                     default="examples/transformation_file/trans_Angle_F.pickle",)
@@ -46,6 +47,7 @@ def main(args,cfg):
     pose2d_size = 34
     pose3d_size = None
     humanData = torch.zeros([n_frames, pose2d_size])
+    #humanData2 = np.zeros([n_frames, pose2d_size])
     
     fps_time = 0
     frameIdx = 0
@@ -53,7 +55,7 @@ def main(args,cfg):
     tagI2W = ["Fall", "Stand"]
     groundtruth = []
     prediction_result = []
-
+    count = 0
     cam_source = args.inputvideo
     im_name = cam_source.split("/")[-1]
     if type(cam_source) is str and os.path.isfile(cam_source):
@@ -74,22 +76,21 @@ def main(args,cfg):
         success, frame = cap.read()
         if success:
             # convert frame to RGB and resize with aspect ratio
-            frame = Resize(frame,392,500)
+            frame = Resize(frame,492,600)
             image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             framenumber = framenumber + 1
             framenumber_ = "{:05d}".format(framenumber)
-            skeleton,poseDict = fallModule.getPose(image,im_name)
+            human2d,poseDict,human3d = fallModule.getPose(image,im_name,args.dataFormat)
             if poseDict is 'zero':
                 continue
-
             if frameIdx != n_frames:
-                humanData[frameIdx, :] = skeleton
+                humanData[frameIdx, :] = torch.from_numpy(human2d)
                 frameIdx += 1
             if frameIdx == n_frames:
                 #print(frameIdx, humanData)
-                
-                index, confidence = fallModule.predictFall(humanData)
+                index, confidence = fallModule.predictFall(humanData, format=args.dataFormat)
                 action_name = tagI2W[index]
+                
                 if index==0 and confidence<0.9:
                     index= 1
                     action_name = tagI2W[index]
@@ -104,10 +105,10 @@ def main(args,cfg):
                 if action_name == "Fall":
                     frame = cv2.putText(
                         frame,
-                        text="Fall",
-                        org=(450, 20),
+                        text="FALLING",
+                        org=(450, 50),
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=0.75,
+                        fontScale=1,
                         color=(0, 0, 255),
                         thickness=2,
                     )
@@ -115,10 +116,10 @@ def main(args,cfg):
                 elif action_name == "Stand":
                     frame = cv2.putText(
                         frame,
-                        text="Stand",
-                        org=(450, 20),
+                        text="STANDING",
+                        org=(450, 50),
                         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=0.75,
+                        fontScale=1,
                         color=(0,255, 0),
                         thickness=2,
                     )
@@ -126,9 +127,9 @@ def main(args,cfg):
                 frame = cv2.putText(
                     frame,
                     text="FPS:%0.2f"%(1 / (time.time() - fps_time)),
-                    org=(10, 20),
+                    org=(15, 50),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=0.5,
+                    fontScale=1,
                     color=(255, 0, 255),
                     thickness=2,
                 )
@@ -143,10 +144,18 @@ def main(args,cfg):
                 # set opencv window attributes
                 window_name = "FallDetection"
                 cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-                #w,h= 500,392
-                cv2.resizeWindow(window_name, 500, 392)
+                #w,h= 600,392
+                cv2.resizeWindow(window_name, 600, 492)
                 # Show Frame.
                 cv2.imshow(window_name, frame)
+                #write frame
+                count = count + 1
+                framecount_ = "{:05d}".format(count)
+                path = args.saveOut.split('.')[0]
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                path = os.path.join(path, 'frame'+framecount_+'.png')
+                cv2.imwrite(path, frame)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 

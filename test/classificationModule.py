@@ -40,7 +40,7 @@ class classifier():
     
     def predict_2d(self, human2d):
         #predict using this function if 2d data in h3.6m format i.e., if pose2d_size=34
-        
+        human2d = human2d.numpy()
         points = normalize_min_(human2d)
         # single frame
         if self.cfg.MODEL[:3]=='dnn':

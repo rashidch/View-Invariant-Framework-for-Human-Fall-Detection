@@ -1,14 +1,14 @@
 import torch
 import os
 import time
-
+import pickle
 import cv2
 import numpy as np
 from test.classificationModule import classifier
 from test.poseEstimationModule import PoseEstimation
 
 
-#from test.uplift2dto3d.get3d import inferencealphaposeto3d_one, transform3d_one
+from test.uplift2dto3d.get3d import inferencealphaposeto3d_one, transform3d_one
 #from test.uplift2dto3d.uplift2d import *
 
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
@@ -28,21 +28,42 @@ class detectFall():
         # load classifier model
         self.fallDetector.load_model()
 
-    def getPose(self, image, im_name):
+    def getPose(self, image, im_name, format='alphapose'):
                
         # get the body keypoints for current frame
         poseDict = self.pose_estimator.process(im_name, image)
         if poseDict == None:
-            return '_','zero'
+            return '_','zero','_'
         elif poseDict!= None:
-            human = poseDict["result"][0] 
-            return human["keypoints"].reshape(1, self.pose2d_size), poseDict
-
-    def predictFall(self,humanData):
+            if format=='h36m':
+                _pose = (poseDict["result"][0]["keypoints"].cpu().numpy().reshape(34,))
+                if (self.args.transform):
+                    self.loadTransformation()
+                    print('<...Angle Transformation...>')
+                    human3d_ = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
+                    human3d, human2d = transform3d_one(self.trans, human3d_)
+                else:
+                    human3d, human2d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=True)
+                return human2d.reshape(1,self.pose2d_size),poseDict,human3d
+            elif format=='alphapose':
+                human = poseDict["result"][0] 
+                return human["keypoints"].reshape(1,self.pose2d_size), poseDict, '_'
+    
+    def loadTransformation(self):
+        if (self.args.transform):
+            trans_path = self.args.transfile
+            with open(trans_path, 'rb') as fp:
+                self.trans = pickle.load(fp)
+        
+    def predictFall(self,humanData, format='alphapose'):
 
         with torch.no_grad():
-            #predict fall down action
-            actres = self.fallDetector.predict_action(humanData)
+            if format=='alphapose':
+                #predict fall down action
+                actres = self.fallDetector.predict_action(humanData)
+            elif format=='h36m':
+                actres = self.fallDetector.predict_2d(humanData)
+
             actres = actres.cpu().numpy().reshape(-1)
             prediction = np.argmax(actres)
             #get confidence and class name
@@ -70,48 +91,7 @@ class detectFall():
         #print("Recall per class : {}".format(np.round(recall_, 4)))
         #print("F1_Score per class: {}".format(np.round(f_score_, 4)))
         print(classification_report(np.asarray(groundtruth), np.asarray(prediction_result), target_names=tagI2W))
-'''
-def predict2d(args, cfg):
 
-    
-    1. This function takes 2d skeleton in alphapose format.
-    2. create a sequence of frames and input to dnn or lstm model
-
-    
-
-    tagI2W = ["Fall", "Stand"]
-    
-    
-    # create objects of pose esimator and classifier class
-    pose_estimator = PoseEstimation(args, cfg)
-    pose_predictor = classifier(args, n_frames, pose2d_size, pose3d_size)
-    
-    
-
-    
-
-            framenumber = framenumber + 1
-            framenumber_ = "{:05d}".format(framenumber)
-            #print("Frame number: ", framenumber_)
-
-           
-            
-
-            # concatenate (N=5) frames to create a sequence of body keypoints
-            if frameIdx != n_frames:
-                
-                
-
-            # only predict the fall down action if the seqeunce lenght is 5
-            if frameIdx == n_frames:
-               
-                #print('before shape',humanData.shape)
-                #meanpose = 0
-                #for idx in range(n_frame):
-                #meanpose += humanData[idx, :]
-                #humData[0,:]= meanpose
-                #print('after shape',humData.shape)
-            
 '''
 def predictSeq(args, cfg):
 
@@ -172,23 +152,13 @@ def predictSeq(args, cfg):
             print("Frame number: ", framenumber_)
 
             # convert frame to RGB and resize with aspect ratio
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame = ResizePadding(frame, 320, 448)
-            image = frame.copy()
-            # get the body keypoints for current frame
+            frame = cv2.cvtColor(framhuman2dfor current frame
             pose = pose_estimator.process(im_name, image)
             if pose == None:
                 # cv2.imshow(window_name, image)
                 continue
             # print('original pose',pose)
-            _pose = (
-                pose["result"][0]["keypoints"]
-                .cpu()
-                .numpy()
-                .reshape(
-                    34,
-                )
-            )
+            _pose = (pose["result"][0]["keypoints"].cpu().numpy().reshape(34,))
 
             if (args.transform):
                 print('<...Angle Transformation...>')
@@ -719,3 +689,4 @@ def predict2d3dFrame(args, cfg):
     cap.release()
     out.release()
     cv2.destroyAllWindows()
+'''
