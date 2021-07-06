@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from test.classificationModule import classifier
 from test.poseEstimationModule import PoseEstimation
-from test.vis import vis_frame
+
 
 #from test.uplift2dto3d.get3d import inferencealphaposeto3d_one, transform3d_one
 #from test.uplift2dto3d.uplift2d import *
@@ -31,11 +31,12 @@ class detectFall():
     def getPose(self, image, im_name):
                
         # get the body keypoints for current frame
-        pose = self.pose_estimator.process(im_name, image)
-        if pose == None:
-            return None
-        human = pose["result"][0] 
-        return human["keypoints"].reshape(1, self.pose2d_size)
+        poseDict = self.pose_estimator.process(im_name, image)
+        if poseDict == None:
+            return '_','zero'
+        elif poseDict!= None:
+            human = poseDict["result"][0] 
+            return human["keypoints"].reshape(1, self.pose2d_size), poseDict
 
     def predictFall(self,humanData):
 
