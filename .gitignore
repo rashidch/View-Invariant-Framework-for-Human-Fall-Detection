@@ -25,7 +25,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
+Alphapose/
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -165,5 +165,5 @@ train/data/
 realistic-fall-dataset/
 dataset/SkeletonData
 src_from_ivan
-
+old/
 

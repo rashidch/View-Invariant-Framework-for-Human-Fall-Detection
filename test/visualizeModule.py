@@ -295,8 +295,8 @@ def vis_frame(frame, im_res, opt, format='coco'):
                 bbox = get_box(keypoints, height, width)
             # color = get_color_fast(int(abs(human['idx'][0][0])))
             cv2.rectangle(img, (int(bbox[0]), int(bbox[2])), (int(bbox[1]),int(bbox[3])), color, 1)
-            if opt.tracking:
-                cv2.putText(img, str(human['idx']), (int(bbox[0]), int((bbox[2] + 26))), DEFAULT_FONT, 1, BLACK, 2)
+            #if opt.tracking:
+            #cv2.putText(img, str(human['idx']), (int(bbox[0]), int((bbox[2] + 26))), DEFAULT_FONT, 1, BLACK, 2)
 
         # Draw keypoints
         vis_thres = 0.05 if kp_num == 136 else 0.4
