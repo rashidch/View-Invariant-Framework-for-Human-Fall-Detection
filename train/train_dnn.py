@@ -14,7 +14,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from sklearn import model_selection
 from fallModels.models import dnntiny, dnnnet
-from train.dataloader import SinglePose2dDataset
+from train.dataLoader import TwoDimensionaldataset
 from train.plot_statics import plot_Statistics
 
 currTime = time.asctime(time.localtime(time.time()))[4:-5]
@@ -38,7 +38,6 @@ class trainDNN:
         #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,patience=100, factor=0.7,verbose=True)
 
         since = time.time()
-        best_model_wts = copy.deepcopy(model.state_dict())
         best_acc = 0.0
         loss_ = 100
         conf_train = 0.0
@@ -66,7 +65,7 @@ class trainDNN:
                 for i, (inputs, targets) in enumerate(dataloader[phase]):
                     inputs = inputs.to(device)
                     targets = targets.to(device)
-
+                    #print('input shape',inputs.shape, "label shape", targets.shape)
                     # clear the parameter gradients
                     optimizer.zero_grad()
 
@@ -201,11 +200,12 @@ class trainDNN:
     def trainWithsplit(DNN_model,n_frames=1, bs=32, num_epochs=1500):
 
         # get test dataloaders
-        dataloaders, dataset_sizes = SinglePose2dDataset.get2dData(reshape=False, bs=bs, n_frames=n_frames)
+        dataLoader, datasetSize = TwoDimensionaldataset.get2dData(bs=bs, n_frames=n_frames,reshape=True)
         # dataloader3d, dataset3d_sizes = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
-        print(dataloaders, dataset_sizes)
+        #for x,y in enumerate(dataLoader['train']):
+        #print('id:',x,'data:',y)
         # train the model
-        history, model, conf_train, conf_valid = trainDNN.train(DNN_model, dataloaders, dataset_sizes, num_epochs=num_epochs)
+        history, _, conf_train, conf_valid = trainDNN.train(DNN_model, dataLoader, datasetSize, num_epochs=num_epochs)
         #plot the model statistics 
         plot_Statistics(history,conf_train, conf_valid,name='dnnnet2d',epochs=num_epochs)
 

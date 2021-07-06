@@ -55,7 +55,7 @@ class Net(nn.Module):
         output = F.softmax(_fc_cls, dim=1)
         return out1, out2, _fc_cls, output
     
-    def exe(self,input1_,input2_,device,holder):
+    def exe(self,input1_,input2_,device):
         input1_ = torch.Tensor(input1_).to(device)
         input2_ = torch.Tensor(input2_).to(device)
         return self.__call__(input1_,input2_) # data,datalen
@@ -88,7 +88,7 @@ class dnntiny(torch.nn.Module):
         
         return _fc4, output
 
-    def exe(self,input_,device,holder):
+    def exe(self,input_,device):
         input_ = torch.Tensor(input_).to(device)
         return self.__call__(input_)
 
@@ -119,7 +119,7 @@ class dnnnet(torch.nn.Module):
         
         return _fc4, output
 
-    def exe(self,input_,device,holder):
+    def exe(self,input_,device):
         input_ = torch.Tensor(input_).to(device)
         return self.__call__(input_)
 
@@ -143,7 +143,7 @@ class FallModel(torch.nn.Module):
         output_probs = F.softmax(raw_preds, dim=1)
         return raw_preds, output_probs
 
-    def exe(self,input_,device,holder):
+    def exe(self,input_,device):
         input_ = torch.Tensor(input_).to(device)
         return self.__call__(input_)
 
@@ -164,7 +164,7 @@ class FallNet(nn.Module):
         output_probs = torch.sigmoid(raw_preds)
         return raw_preds, output_probs
     
-    def exe(self,input_,device,holder):
+    def exe(self,input_,device):
         input_ = torch.Tensor(input_).to(device)
         return self.__call__(input_)
 
