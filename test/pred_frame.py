@@ -20,6 +20,7 @@ from uplift2dto3d.get3d import inferencealphaposeto3d_one, transform3d_one
 from uplift2dto3d.uplift2d import *
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.metrics import classification_report
+from collections import defaultdict
 
 
 def predictSequence(args, cfg):
@@ -249,7 +250,7 @@ def predH36mSeq(args, cfg):
                 human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
                 human3d, human2d = transform3d_one(trans, human3d)
             else:
-                human3d, human2d= inferencealphaposeto3d_one(_pose, input_type="array", need_2d=True)
+                human3d, human2d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=True)
 
             # print("pose",_pose)
             # print('2d Skeleton shape:',human2d.shape)
@@ -355,6 +356,7 @@ def predH36mSeq(args, cfg):
     out.release()
     cv2.destroyAllWindows()
 
+
 def predH36mSeq3d(args, cfg):
     '''
         this function takes skeleton in h36m format and stack the frames to make sequence
@@ -422,7 +424,7 @@ def predH36mSeq3d(args, cfg):
                 human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
                 human3d, human2d = transform3d_one(trans, human3d)
             else:
-                human3d, human2d= inferencealphaposeto3d_one(_pose, input_type="array", need_2d=True)
+                human3d, human2d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=True)
 
             # print("pose",_pose)
             # print('2d Skeleton shape:',human2d.shape)
@@ -750,91 +752,123 @@ def predict3dFrame(args, cfg):
             image = frame.copy()
             # get the body keypoints for current frame
             pose = pose_estimator.process(im_name, image)
+            # print("Pose :",pose)
             if pose == None:
                 # cv2.imshow(window_name, image)
                 continue
-            _pose = pose['result'][0]['keypoints'].cpu().numpy().reshape(34, )
-            # human3d, human2d = inferencealphaposeto3d_one(_pose, input_type="array")
-            # print('Skeleton shape:', output_2d.shape)
-            # print('Skeleton shape:', output_3d.shape)
-            if (args.transform):
-                human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
-                human3d, human2d = transform3d_one(trans, human3d)
-            else:
-                human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
 
-            # merge the body keypints of (N=5) frames to create a sequence of body keypoints
-            if frameIdx != n_frames:
-                human = pose['result'][0]
-                humanData3d[frameIdx] = human3d.reshape(1, pose3d_size)
-                frameIdx += 1
+            # TODO Filtering the skeleton score, only predict the result if the proposal score more than 2.6
+            if (pose['result'][0]['proposal_score'] >= 1.5):
+                print("detection happened")
+                _pose = pose['result'][0]['keypoints'].cpu().numpy().reshape(34, )
+                # human3d, human2d = inferencealphaposeto3d_one(_pose, input_type="array")
+                # print('Skeleton shape:', output_2d.shape)
+                # print('Skeleton shape:', output_3d.shape)
+                if (args.transform):
+                    human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
+                    human3d, human2d = transform3d_one(trans, human3d)
+                else:
+                    human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
 
-            # only predict the fall down action if the seqeunce lenght is 5
-            if frameIdx == n_frames:
+                # merge the body keypints of (N=5) frames to create a sequence of body keypoints
+                if frameIdx != n_frames:
+                    human = pose['result'][0]
+                    humanData3d[frameIdx] = human3d.reshape(1, pose3d_size)
+                    frameIdx += 1
 
-                with torch.no_grad():
-                    # load classifier model
-                    pose_predictor.load_model()
-                    # predict fall down action
-                    actres = pose_predictor.predict_3d(humanData3d)
-                    actres = actres.cpu().numpy().reshape(-1)
-                    # print(actres)
-                    predictions = np.argmax(actres)
-                    print(predictions)
-                    # get confidence and fall down class name
-                    confidence = round(actres[predictions], 3)
-                    action_name = tagI2W[predictions]
-                    print("Confidence: {:.2f},Action_Name:{}".format(confidence, action_name))
-                    frame = vis_frame(frame, pose, args)  # visulize the pose result
-                    # render predicted class names on video frames
-                    if action_name == 'Fall':
-                        frame_new = cv2.putText(frame, text='Falling', org=(340, 20),
-                                                fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 0, 0),
-                                                thickness=2)
+                # only predict the fall down action if the seqeunce lenght is 5
+                if frameIdx == n_frames:
 
-                    elif action_name == 'Stand':
-                        frame_new = cv2.putText(frame, text='Standing', org=(340, 20),
+                    with torch.no_grad():
+                        # load classifier model
+                        pose_predictor.load_model()
+                        # predict fall down action
+                        actres = pose_predictor.predict_3d(humanData3d)
+                        actres = actres.cpu().numpy().reshape(-1)
+                        # print(actres)
+                        predictions = np.argmax(actres)
+                        print(predictions)
+                        # get confidence and fall down class name
+                        confidence = round(actres[predictions], 3)
+                        action_name = tagI2W[predictions]
+                        print("Confidence: {:.2f},Action_Name:{}".format(confidence, action_name))
+                        frame = vis_frame(frame, pose, args)  # visulize the pose result
+                        # render predicted class names on video frames
+                        if action_name == 'Fall':
+                            frame_new = cv2.putText(frame, text='Falling', org=(340, 20),
+                                                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75,
+                                                    color=(255, 0, 0),
+                                                    thickness=2)
+
+                        elif action_name == 'Stand':
+                            frame_new = cv2.putText(frame, text='Standing', org=(340, 20),
+                                                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75,
+                                                    color=(255, 230, 0),
+                                                    thickness=2)
+
+                        elif action_name == 'Tie':
+                            frame = cv2.putText(frame, text='Tying', org=(340, 20),
                                                 fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0),
                                                 thickness=2)
 
-                    elif action_name == 'Tie':
-                        frame = cv2.putText(frame, text='Tying', org=(340, 20),
-                                            fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0),
-                                            thickness=2)
+                        frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
+                                                org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                                fontScale=0.75, color=(255, 255, 255), thickness=2)
 
-                    frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
-                                            org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                            fontScale=0.75, color=(255, 255, 255), thickness=2)
+                        frame_new = frame_new[:, :, ::-1]
+                        fps_time = time.time()
+                        humanData[:n_frames - 1] = humanData[1:n_frames]
+                        # frameIdx = n_frames
+                        frameIdx = 0
 
-                    frame_new = frame_new[:, :, ::-1]
-                    fps_time = time.time()
-                    humanData[:n_frames - 1] = humanData[1:n_frames]
-                    # frameIdx = n_frames
-                    frameIdx = 0
+                        # set opencv window attributes
+                        window_name = "Fall Detection Window"
+                        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+                        cv2.resizeWindow(window_name, 720, 512)
+                        # Show Frame.
+                        cv2.imshow(window_name, frame_new)
+                        if cv2.waitKey(1) & 0xFF == ord('q'):
+                            break
 
-                    # set opencv window attributes
-                    window_name = "Fall Detection Window"
-                    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow(window_name, 720, 512)
-                    # Show Frame.
-                    cv2.imshow(window_name, frame_new)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
+                        dim = (int(frame_width), int(frame_height))
+                        frame_new = cv2.resize(frame_new, dim, interpolation=cv2.INTER_AREA)
+                        out.write(frame_new.astype('uint8'))
 
-                    dim = (int(frame_width), int(frame_height))
-                    frame_new = cv2.resize(frame_new, dim, interpolation=cv2.INTER_AREA)
-                    out.write(frame_new.astype('uint8'))
+                        '''Find recall precision and f1 score'''
+                        try:
+                            label = dictlabel[framenumber_]
+                            groundtruth.append(1 if label == 'Stand' else 0)
+                            prediction_result.append(1 if action_name == 'Stand' else 0)
+                            print("Label is: ", label)
+                            print("action_name is: ", action_name)
+                        except:
+                            pass
+            else:
+                frame = vis_frame(frame, pose, args)  # visulize the pose result
+                frame_new = cv2.putText(frame, text='Unknown', org=(340, 20),
+                                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(0, 255, 255),
+                                        thickness=2)
+                frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
+                                        org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                        fontScale=0.75, color=(255, 255, 255), thickness=2)
+                frame_new = frame_new[:, :, ::-1]
+                fps_time = time.time()
+                humanData[:n_frames - 1] = humanData[1:n_frames]
+                # frameIdx = n_frames
+                frameIdx = 0
 
-                    '''Find recall precision and f1 score'''
-                    try:
-                        label = dictlabel[framenumber_]
-                        groundtruth.append(1 if label == 'Stand' else 0)
-                        prediction_result.append(1 if action_name == 'Stand' else 0)
-                        print("Label is: ", label)
-                        print("action_name is: ", action_name)
-                    except:
-                        pass
+                # set opencv window attributes
+                window_name = "Fall Detection Window"
+                cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+                cv2.resizeWindow(window_name, 720, 512)
+                # Show Frame.
+                cv2.imshow(window_name, frame_new)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
+                dim = (int(frame_width), int(frame_height))
+                frame_new = cv2.resize(frame_new, dim, interpolation=cv2.INTER_AREA)
+                out.write(frame_new.astype('uint8'))
         else:
             break
             # Clear resource.
@@ -903,6 +937,18 @@ def predict2d3dFrame(args, cfg):
     groundtruth = []
     prediction_result = []
 
+    dict_label = {
+        'Fall': 0,
+        'Stand': 1,
+        'Tie': 2,
+        'Unknown': 3
+    }
+    NUM_FRAME_FALL = 5
+    count_roll = 0
+    roll_array = np.ones((NUM_FRAME_FALL), dtype=int)
+    threshold_80 = NUM_FRAME_FALL * 65 // 100
+    threshold_stand_tie_unknown = 5
+
     with open("test/" + im_name.split(".")[0] + '.pickle', 'rb') as handle:
         dictlabel = pickle.load(handle)
 
@@ -923,88 +969,162 @@ def predict2d3dFrame(args, cfg):
             if pose == None:
                 # cv2.imshow(window_name, image)
                 continue
-            # convert 2d pose to 3d
-            _pose = pose['result'][0]['keypoints'].cpu().numpy().reshape(pose2d_size, )
 
-            if (args.transform):
-                human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
-                human3d, human2d = transform3d_one(trans, human3d)
+            if (pose['result'][0]['proposal_score'] >= 1.4):
+
+                # convert 2d pose to 3d
+                _pose = pose['result'][0]['keypoints'].cpu().numpy().reshape(pose2d_size, )
+
+                if (args.transform):
+                    human3d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=False)
+                    human3d, human2d = transform3d_one(trans, human3d)
+                else:
+                    human3d, human2d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=True)
+
+                # merge the body keypints of (N=5) frames to create a sequence of body keypoints
+                if frameIdx != n_frames:
+                    human = pose['result'][0]
+                    humanData[frameIdx] = human2d.reshape(1, pose2d_size)
+                    humanData3d[frameIdx] = human3d.reshape(1, pose3d_size)
+                    frameIdx += 1
+
+                # only predict the fall down action if the seqeunce lenght is 5
+                if frameIdx == n_frames:
+
+                    with torch.no_grad():
+                        # load classifier model
+                        pose_predictor.load_model()
+                        # predict fall down action
+                        actres = pose_predictor.predict_2d3d(humanData, humanData3d)
+                        actres = actres.cpu().numpy().reshape(-1)
+                        # print(actres)
+                        predictions = np.argmax(actres)
+                        # print(predictions)
+                        # get confidence and fall down class name
+                        confidence = round(actres[predictions], 3)
+                        action_name = tagI2W[predictions]
+                        print("Confidence: {:.2f},Action_Name:{}".format(confidence, action_name))
+                        frame = vis_frame(frame, pose, args)  # visulize the pose result
+
+                        if count_roll < NUM_FRAME_FALL:
+                            roll_array[count_roll] = dict_label[action_name]
+                            count_roll += 1
+                        else:
+                            if (action_name == "Stand" or action_name == "Tie"):
+                                for i in range(0, 5):
+                                    roll_array = np.concatenate((roll_array[1:], [dict_label[action_name]]))
+                            else:
+                                roll_array = np.concatenate((roll_array[1:], [dict_label[action_name]]))
+
+                            values, valcounts = np.unique(roll_array, return_counts=True)
+                            prediction_roll = dict(zip(values, valcounts))
+                            prediction_roll = defaultdict(lambda: 0, prediction_roll)
+
+                            if prediction_roll[0] >= threshold_80:
+                                frame_new = cv2.putText(frame, text='Falling', org=(340, 20),
+                                                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75,
+                                                        color=(255, 0, 0),
+                                                        thickness=2)
+                                try:
+                                    label = dictlabel[framenumber_]
+                                    groundtruth.append(1 if label == 'Stand' else 0)
+                                    prediction_result.append(1 if action_name == 'Stand' else 0)
+                                    print("Label is: ", label)
+                                    print("action_name is: ", action_name)
+                                except:
+                                    pass
+
+
+                            elif (prediction_roll[1] >= threshold_stand_tie_unknown):
+                                if (action_name == "Stand"):
+                                    frame_new = cv2.putText(frame, text='Standing', org=(340, 20),
+                                                            fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75,
+                                                            color=(255, 230, 0),
+                                                            thickness=2)
+                                    try:
+                                        label = dictlabel[framenumber_]
+                                        groundtruth.append(1 if label == 'Stand' else 0)
+                                        prediction_result.append(1 if action_name == 'Stand' else 0)
+                                        print("Label is: ", label)
+                                        print("action_name is: ", action_name)
+                                    except:
+                                        pass
+                                else:
+                                    pass
+
+                        # # render predicted class names on video frames
+                        # if action_name == 'Fall':
+                        #     frame_new = cv2.putText(frame, text='Falling', org=(340, 20),
+                        #                             fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 0, 0),
+                        #                             thickness=2)
+                        #
+                        # elif action_name == 'Stand':
+                        #     frame_new = cv2.putText(frame, text='Standing', org=(340, 20),
+                        #                             fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0),
+                        #                             thickness=2)
+                        #
+                        # elif action_name == 'Tie':
+                        #     frame = cv2.putText(frame, text='Tying', org=(340, 20),
+                        #                         fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0),
+                        #                         thickness=2)
+
+                        frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
+                                                org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                                fontScale=0.75, color=(255, 255, 255), thickness=2)
+
+                        frame_new = frame_new[:, :, ::-1]
+                        fps_time = time.time()
+                        humanData[:n_frames - 1] = humanData[1:n_frames]
+                        frameIdx = 0
+
+                        # set opencv window attributes
+                        window_name = "Fall Detection Window"
+                        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+                        cv2.resizeWindow(window_name, 720, 512)
+                        # Show Frame.
+                        cv2.imshow(window_name, frame_new)
+                        if cv2.waitKey(1) & 0xFF == ord('q'):
+                            break
+
+                        dim = (int(frame_width), int(frame_height))
+                        frame_new = cv2.resize(frame_new, dim, interpolation=cv2.INTER_AREA)
+                        out.write(frame_new.astype('uint8'))
+
+                        '''Find recall precision and f1 score'''
+                        # try:
+                        #     label = dictlabel[framenumber_]
+                        #     groundtruth.append(1 if label == 'Stand' else 0)
+                        #     prediction_result.append(1 if action_name == 'Stand' else 0)
+                        #     print("Label is: ", label)
+                        #     print("action_name is: ", action_name)
+                        # except:
+                        #     pass
             else:
-                human3d, human2d = inferencealphaposeto3d_one(_pose, input_type="array", need_2d=True)
+                frame = vis_frame(frame, pose, args)  # visulize the pose result
+                frame_new = cv2.putText(frame, text='Unknown', org=(340, 20),
+                                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(0, 255, 255),
+                                        thickness=2)
+                frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
+                                        org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                        fontScale=0.75, color=(255, 255, 255), thickness=2)
+                frame_new = frame_new[:, :, ::-1]
+                fps_time = time.time()
+                humanData[:n_frames - 1] = humanData[1:n_frames]
+                # frameIdx = n_frames
+                frameIdx = 0
 
-            # merge the body keypints of (N=5) frames to create a sequence of body keypoints
-            if frameIdx != n_frames:
-                human = pose['result'][0]
-                humanData[frameIdx] = human2d.reshape(1, pose2d_size)
-                humanData3d[frameIdx] = human3d.reshape(1, pose3d_size)
-                frameIdx += 1
+                # set opencv window attributes
+                window_name = "Fall Detection Window"
+                cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+                cv2.resizeWindow(window_name, 720, 512)
+                # Show Frame.
+                cv2.imshow(window_name, frame_new)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
-            # only predict the fall down action if the seqeunce lenght is 5
-            if frameIdx == n_frames:
-
-                with torch.no_grad():
-                    # load classifier model
-                    pose_predictor.load_model()
-                    # predict fall down action
-                    actres = pose_predictor.predict_2d3d(humanData, humanData3d)
-                    actres = actres.cpu().numpy().reshape(-1)
-                    # print(actres)
-                    predictions = np.argmax(actres)
-                    # print(predictions)
-                    # get confidence and fall down class name
-                    confidence = round(actres[predictions], 3)
-                    action_name = tagI2W[predictions]
-                    print("Confidence: {:.2f},Action_Name:{}".format(confidence, action_name))
-                    frame = vis_frame(frame, pose, args)  # visulize the pose result
-
-                    # render predicted class names on video frames
-                    if action_name == 'Fall':
-                        frame_new = cv2.putText(frame, text='Falling', org=(340, 20),
-                                                fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 0, 0),
-                                                thickness=2)
-
-                    elif action_name == 'Stand':
-                        frame_new = cv2.putText(frame, text='Standing', org=(340, 20),
-                                                fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0),
-                                                thickness=2)
-
-                    elif action_name == 'Tie':
-                        frame = cv2.putText(frame, text='Tying', org=(340, 20),
-                                            fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0),
-                                            thickness=2)
-
-                    frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
-                                            org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                            fontScale=0.75, color=(255, 255, 255), thickness=2)
-
-                    frame_new = frame_new[:, :, ::-1]
-                    fps_time = time.time()
-                    humanData[:n_frames - 1] = humanData[1:n_frames]
-                    frameIdx = 0
-
-                    # set opencv window attributes
-                    window_name = "Fall Detection Window"
-                    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-                    cv2.resizeWindow(window_name, 720, 512)
-                    # Show Frame.
-                    cv2.imshow(window_name, frame_new)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        break
-
-                    dim = (int(frame_width), int(frame_height))
-                    frame_new = cv2.resize(frame_new, dim, interpolation=cv2.INTER_AREA)
-                    out.write(frame_new.astype('uint8'))
-
-                    '''Find recall precision and f1 score'''
-                    try:
-                        label = dictlabel[framenumber_]
-                        groundtruth.append(1 if label == 'Stand' else 0)
-                        prediction_result.append(1 if action_name == 'Stand' else 0)
-                        print("Label is: ", label)
-                        print("action_name is: ", action_name)
-                    except:
-                        pass
-
+                dim = (int(frame_width), int(frame_height))
+                frame_new = cv2.resize(frame_new, dim, interpolation=cv2.INTER_AREA)
+                out.write(frame_new.astype('uint8'))
         else:
             break
 

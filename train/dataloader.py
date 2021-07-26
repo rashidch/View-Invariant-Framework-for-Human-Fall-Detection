@@ -31,7 +31,7 @@ class SinglePose2dDataset(Dataset):
 
         # get csv file path
         curr_dir = os.getcwd()
-        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/taoyuan_angle1_3D_Original_augmented_2D_from3DOriginal.csv')
+        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/AngleA_Eliminated_2D_from3DOriginal.csv')
 
         # list for storing data and labels
         data = []
@@ -176,7 +176,7 @@ class SinglePose3dDataset(Dataset):
 
         # get csv file path
         curr_dir = os.getcwd()
-        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/taoyuan_angle1_3D_Original_augmented.csv')
+        csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/AngleA_Eliminated_3D_Original.csv')
 
         # list for storing data and labels
         data = []
