@@ -734,6 +734,20 @@ def predict3dFrame(args, cfg):
     framenumber = -1
     groundtruth = []
     prediction_result = []
+    groundtruth = []
+    prediction_result = []
+
+    dict_label = {
+        'Fall': 0,
+        'Stand': 1,
+        'Tie': 2,
+        'Unknown': 3
+    }
+    NUM_FRAME_FALL = 10
+    count_roll = 0
+    roll_array = np.ones((NUM_FRAME_FALL), dtype=int)
+    threshold_80 = NUM_FRAME_FALL * 65 // 100
+    threshold_stand_tie_unknown = 5
 
     with open("test/" + im_name.split(".")[0] + '.pickle', 'rb') as handle:
         dictlabel = pickle.load(handle)
@@ -777,6 +791,7 @@ def predict3dFrame(args, cfg):
                     frameIdx += 1
 
                 # only predict the fall down action if the seqeunce lenght is 5
+
                 if frameIdx == n_frames:
 
                     with torch.no_grad():
@@ -794,55 +809,74 @@ def predict3dFrame(args, cfg):
                         print("Confidence: {:.2f},Action_Name:{}".format(confidence, action_name))
                         frame = vis_frame(frame, pose, args)  # visulize the pose result
                         # render predicted class names on video frames
-                        if action_name == 'Fall':
-                            frame_new = cv2.putText(frame, text='Falling', org=(340, 20),
-                                                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75,
-                                                    color=(255, 0, 0),
-                                                    thickness=2)
+                        if count_roll < NUM_FRAME_FALL:
+                            roll_array[count_roll] = dict_label[action_name]
+                            count_roll += 1
+                        else:
+                            if (action_name == "Stand" or action_name == "Tie"):
+                                for i in range(0, 10):
+                                    roll_array = np.concatenate((roll_array[1:], [dict_label[action_name]]))
+                            else:
+                                roll_array = np.concatenate((roll_array[1:], [dict_label[action_name]]))
 
-                        elif action_name == 'Stand':
-                            frame_new = cv2.putText(frame, text='Standing', org=(340, 20),
-                                                    fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75,
-                                                    color=(255, 230, 0),
-                                                    thickness=2)
+                            values, valcounts = np.unique(roll_array, return_counts=True)
+                            prediction_roll = dict(zip(values, valcounts))
+                            prediction_roll = defaultdict(lambda: 0, prediction_roll)
 
-                        elif action_name == 'Tie':
-                            frame = cv2.putText(frame, text='Tying', org=(340, 20),
-                                                fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75, color=(255, 230, 0),
-                                                thickness=2)
+                            if prediction_roll[0] >= threshold_80:
+                                frame_new = cv2.putText(frame, text='Falling', org=(340, 20),
+                                                        fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75,
+                                                        color=(255, 0, 0),
+                                                        thickness=2)
+                                try:
+                                    label = dictlabel[framenumber_]
+                                    groundtruth.append(1 if label == 'Stand' else 0)
+                                    prediction_result.append(1 if action_name == 'Stand' else 0)
+                                    print("Label is: ", label)
+                                    print("action_name is: ", action_name)
+                                except:
+                                    pass
 
-                        frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
-                                                org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                                fontScale=0.75, color=(255, 255, 255), thickness=2)
 
-                        frame_new = frame_new[:, :, ::-1]
-                        fps_time = time.time()
-                        humanData[:n_frames - 1] = humanData[1:n_frames]
-                        # frameIdx = n_frames
-                        frameIdx = 0
+                            elif (prediction_roll[1] >= threshold_stand_tie_unknown):
+                                if (action_name == "Stand"):
+                                    frame_new = cv2.putText(frame, text='Standing', org=(340, 20),
+                                                            fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.75,
+                                                            color=(255, 230, 0),
+                                                            thickness=2)
+                                    try:
+                                        label = dictlabel[framenumber_]
+                                        groundtruth.append(1 if label == 'Stand' else 0)
+                                        prediction_result.append(1 if action_name == 'Stand' else 0)
+                                        print("Label is: ", label)
+                                        print("action_name is: ", action_name)
+                                    except:
+                                        pass
+                                else:
+                                    pass
 
-                        # set opencv window attributes
-                        window_name = "Fall Detection Window"
-                        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-                        cv2.resizeWindow(window_name, 720, 512)
-                        # Show Frame.
-                        cv2.imshow(window_name, frame_new)
-                        if cv2.waitKey(1) & 0xFF == ord('q'):
-                            break
+                            frame_new = cv2.putText(frame, text='FPS: %f' % (1 / (time.time() - fps_time)),
+                                                    org=(10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                                    fontScale=0.75, color=(255, 255, 255), thickness=2)
 
-                        dim = (int(frame_width), int(frame_height))
-                        frame_new = cv2.resize(frame_new, dim, interpolation=cv2.INTER_AREA)
-                        out.write(frame_new.astype('uint8'))
+                            frame_new = frame_new[:, :, ::-1]
+                            fps_time = time.time()
+                            humanData[:n_frames - 1] = humanData[1:n_frames]
+                            frameIdx = 0
 
-                        '''Find recall precision and f1 score'''
-                        try:
-                            label = dictlabel[framenumber_]
-                            groundtruth.append(1 if label == 'Stand' else 0)
-                            prediction_result.append(1 if action_name == 'Stand' else 0)
-                            print("Label is: ", label)
-                            print("action_name is: ", action_name)
-                        except:
-                            pass
+                            # set opencv window attributes
+                            window_name = "Fall Detection Window"
+                            cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+                            cv2.resizeWindow(window_name, 720, 512)
+                            # Show Frame.
+                            cv2.imshow(window_name, frame_new)
+                            if cv2.waitKey(1) & 0xFF == ord('q'):
+                                break
+
+                            dim = (int(frame_width), int(frame_height))
+                            frame_new = cv2.resize(frame_new, dim, interpolation=cv2.INTER_AREA)
+                            out.write(frame_new.astype('uint8'))
+
             else:
                 frame = vis_frame(frame, pose, args)  # visulize the pose result
                 frame_new = cv2.putText(frame, text='Unknown', org=(340, 20),
