@@ -7,7 +7,7 @@ def Read2dPoseData(n_frames):
     
     # get csv file path
     curr_dir = os.getcwd()
-    csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/taoyuan.csv')
+    csv_file_path = os.path.join(curr_dir, 'dataset/DataCSV/MixFall_2Dfrom3D.csv')
     
     # list for storing data and labels
     data  = []
@@ -25,11 +25,11 @@ def Read2dPoseData(n_frames):
 
     KP_df['pos_class'] = KP_df['pos_class'].astype('category').cat.codes
     # skipping (0-3) colomns , return values of all rows and columns from 4 to last
-    features = KP_df.iloc[:,6:].values
+    features = KP_df.iloc[:,1:23].values
     #return values of pose_class 
     pose_class = KP_df['pos_class'].values
     # normalize keypoints 
-    print('features shape', len(features[0]))
+    #print('features shape', len(features[0]))
     features = normalize_min_(features)
     # append multiple rows to create a sequence of data
     if n_frames>1:
@@ -52,6 +52,7 @@ def Read2dPoseData(n_frames):
 
 # min-max normalization to scale the x, y coordinates in range (0-1) 
 def normalize_min_(pose:np.ndarray):
+    print(pose.shape)
     pose = pose.reshape(len(pose),-1,2)
     for i in range(len(pose)):
         xmin = np.min(pose[i,:,0]) 

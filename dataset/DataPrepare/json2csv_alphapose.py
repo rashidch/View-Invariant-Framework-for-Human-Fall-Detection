@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
-execResjson = "find -type f -iname 'taoyuan.json' "
+execResjson = "find -type f -iname 'multicamTrain.json' "
 
 alphaI2W = ["nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
 "LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion

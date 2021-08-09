@@ -10,7 +10,7 @@ cfg1.tagW2I = {w:i for i,w in enumerate(cfg1.tagI2W)}
 #dnnet cfg
 cfg2 = edict()
 cfg2.MODEL = 'dnnnet'
-cfg2.CHEKPT = 'checkpoints/alph_dnnnet_Jun_30_22/epoch_729_loss_0.041174.pth'
+cfg2.CHEKPT = 'checkpoints/alph_dnn2d_Jul_25_17/epoch_2999_loss_0.179312.pth'
 cfg2.tagI2W = ["Fall","Stand"] # 2
 cfg2.tagW2I = {w:i for i,w in enumerate(cfg2.tagI2W)}
 
@@ -34,3 +34,10 @@ cfg5.MODEL = 'FallModel'
 cfg5.CHEKPT = 'checkpoints/lstm2d_Jun_8/epoch_133_loss_0.024662.pth'
 cfg5.tagI2W = ["Fall","Stand"]
 cfg5.tagW2I = {w:i for i,w in enumerate(cfg5.tagI2W)}
+
+#dstanet cfg
+cfg6= edict()
+cfg6.MODEL = 'dstanet'
+cfg6.CHEKPT = 'checkpoints/STANnet_Aug_7_02/epoch_119_loss_0.079019.pth'
+cfg6.tagI2W = ["Fall","Stand"]
+cfg6.tagW2I = {w:i for i,w in enumerate(cfg5.tagI2W)}

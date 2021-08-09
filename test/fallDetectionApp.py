@@ -3,7 +3,7 @@ import cv2
 import torch
 import os
 import time
-import pickle
+import pickle5 as pickle                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 from test.utils import Resize
 
 from test.fallDetectionModule import detectFall
@@ -27,13 +27,13 @@ parser.add_argument("--gpus",type=str,dest="gpus",default="0",
     help="choose which cuda device to use by index and input comma to use multi gpus, e.g. 0,1,2,3. (input -1 for cpu only)")
 parser.add_argument("--flip", default=False, action="store_true", help="enable flip testing")
 parser.add_argument("-vis","--vis_fast", dest="vis_fast", help="use fast rendering", action="store_true", default=False)
-parser.add_argument("--saveOut", type=str, default="outputs/camtest/C.avi", help="Save display to video file.")
+parser.add_argument("--saveOut", type=str, default="outputs/MixFall/test4.avi", help="Save display to video file.")
 parser.add_argument("-df","--dataFormat", type=str, default='h36m', help="Input Skeleton data format")
-parser.add_argument("-c","--cam", dest="inputvideo", help="video-name", default="examples/demo/test/Angle_C.mp4")
-parser.add_argument("--transform", default=True, action="store_true", help="Do you want to transform the angle?056")
+parser.add_argument("-c","--cam", dest="inputvideo", help="video-name", default="examples/demo/test/test3.mp4")
+parser.add_argument("--transform", default=False, action="store_true", help="Do you want to transform the angle?056")
 parser.add_argument("-tfile","--transform_file",dest="transfile",help="transformation-file",
                     default="examples/transformation_file/trans_Angle_F.pickle",)
-parser.add_argument("-cls","--classifier", dest="classmodel", type=str, default="dnnnet", 
+parser.add_argument("-cls","--classifier", dest="classmodel", type=str, default="dstanet", 
                     help="choose classifer model, defualt dnn model")
 
 args = parser.parse_args()
@@ -43,7 +43,7 @@ args.device = torch.device("cuda:" + str(args.gpus[0]) if args.gpus[0] >= 0 else
 
 def main(args,cfg):
 
-    n_frames = 1
+    n_frames = 10
     pose2d_size = 34
     pose3d_size = None
     humanData = torch.zeros([n_frames, pose2d_size])
@@ -66,10 +66,14 @@ def main(args,cfg):
         # get width and height of frame
         fwidth = int(cap.get(3))
         fheight = int(cap.get(4))
+        opath= os.path.dirname(args.saveOut)
+        if not os.path.exists(opath):
+            os.makedirs(opath)
         writer = cv2.VideoWriter(args.saveOut,cv2.VideoWriter_fourcc('M','J','P','G'),20, (fwidth,fheight))
     
     fallModule = detectFall(args,cfg,n_frames,pose2d_size,pose3d_size)
     handle = open("examples/demo/test/labels/" + im_name.split(".")[0] + ".pickle", "rb")
+    print('Hadle', handle)
     dictlabel = pickle.load(handle)
 
     while cap.isOpened():
@@ -84,7 +88,10 @@ def main(args,cfg):
             if poseDict is 'zero':
                 continue
             if frameIdx != n_frames:
-                humanData[frameIdx, :] = torch.from_numpy(human2d)
+                if args.dataFormat=='alphapose':
+                    humanData[frameIdx, :] = human2d
+                else:
+                    humanData[frameIdx, :] = torch.from_numpy(human2d)
                 frameIdx += 1
             if frameIdx == n_frames:
                 #print(frameIdx, humanData)
@@ -144,7 +151,7 @@ def main(args,cfg):
                 # set opencv window attributes
                 window_name = "FallDetection"
                 cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-                #w,h= 600,392
+                #w,h= 600,492
                 cv2.resizeWindow(window_name, 600, 492)
                 # Show Frame.
                 cv2.imshow(window_name, frame)
@@ -162,6 +169,8 @@ def main(args,cfg):
                 """Find recall precision and f1 score"""
                 try:
                     label = dictlabel[framenumber_]
+                    if label=="Nofall":
+                        label="Stand"
                     groundtruth.append(1 if label == "Stand" else 0)
                     prediction_result.append(1 if action_name == "Stand" else 0)
                     print("Predicted Label:",action_name)

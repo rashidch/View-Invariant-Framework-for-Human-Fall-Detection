@@ -16,6 +16,7 @@ from sklearn import model_selection
 from fallModels.models import dnntiny, dnnnet
 from train.dataLoader import TwoDimensionaldataset
 from train.plot_statics import plot_Statistics
+from train.optimizer_choose import optimizer_choose
 
 currTime = time.asctime(time.localtime(time.time()))[4:-5]
 currTime = currTime.split(' ')
@@ -33,9 +34,10 @@ class trainDNN:
         history = defaultdict(list)
         # define the optimization
         criterion = torch.nn.CrossEntropyLoss().to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=150, gamma=0.1)
-        #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,patience=100, factor=0.7,verbose=True)
+        optimizer = optimizer_choose(model, optimizer='sgd_nev')
+        #optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
+        #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,patience=5, factor=0.1,verbose=True)
 
         since = time.time()
         best_acc = 0.0
@@ -74,7 +76,7 @@ class trainDNN:
                     with torch.set_grad_enabled(phase == "train"):
 
                         # compute model outputs
-                        raw_preds, class_probs = model(inputs)
+                        raw_preds, class_probs = model(inputs.view(-1,34))
 
                         # calculate outputs
                         _, preds = torch.max(class_probs, dim=1)
@@ -109,8 +111,8 @@ class trainDNN:
                 )
 
                 if phase == "valid":
-                    #scheduler.step(epoch_loss)
-                    scheduler.step()
+                    scheduler.step(epoch_loss)
+                    #scheduler.step()
 
                 # Confusion matrix
                 conf_mat = confusion_matrix(class_tensor.numpy(), pred_tensor.numpy())
@@ -134,7 +136,7 @@ class trainDNN:
                     conf_valid = conf_mat
                     # best_model_wts = copy.deepcopy(model.state_dict())
                     trainDNN.save_model(
-                        model, optimizer, loss_, epoch_acc, epoch_,fold,save_path=r"checkpoints/alph_dnnnet_" + currTime
+                        model, optimizer, loss_, epoch_acc, epoch_,fold,save_path=r"checkpoints/hmdnn2d_" + currTime
                     )
 
                 if phase == "train" and epoch_acc > best_acc:
@@ -143,11 +145,11 @@ class trainDNN:
             print()
 
         trainDNN.save_model(
-        model, optimizer, loss_, epoch_acc, epoch_,fold,save_path=r"checkpoints/alph_dnnnet_" + currTime
+        model, optimizer, epoch_loss, epoch_acc, epoch,fold,save_path=r"checkpoints/hmdnn2d_" + currTime
                     )
         time_elapsed = time.time() - since
         print("Training complete in {:.0f}m {:.0f}s".format(time_elapsed // 60, time_elapsed % 60))
-        print("Best val Acc: {:4f}".format(epoch_acc))
+        print("Acc: {:4f}".format(epoch_acc))
 
         return history, model, conf_train, conf_valid
 
@@ -179,7 +181,7 @@ class trainDNN:
         cross_valid = model_selection.StratifiedKFold(n_splits=kfolds, shuffle=False)
 
         #get pose dataset
-        dataset = SinglePose2dDataset(n_frames=n_frames)
+        dataset = TwoDimensionaldataset(n_frames=n_frames)
         for fold, (train_idx, valid_idx) in enumerate(cross_valid.split(X=dataset.X, y=dataset.y)):
             print("------------Corss Validation KFold {}--------".format(fold))
             #print(len(train_idx), len(valid_idx))
@@ -200,7 +202,7 @@ class trainDNN:
     def trainWithsplit(DNN_model,n_frames=1, bs=32, num_epochs=1500):
 
         # get test dataloaders
-        dataLoader, datasetSize = TwoDimensionaldataset.get2dData(bs=bs, n_frames=n_frames,reshape=True)
+        dataLoader, datasetSize = TwoDimensionaldataset.get2dData(bs=bs, n_frames=n_frames,reshape=False)
         # dataloader3d, dataset3d_sizes = SinglePose3dDataset.get3dData(reshape=False, bs=16,n_frames=1)
         #for x,y in enumerate(dataLoader['train']):
         #print('id:',x,'data:',y)
@@ -219,7 +221,7 @@ if __name__ == "__main__":
     DNN_model = dnnnet(input_dim=34, class_num=2).to(device)
 
     if training_mode == "train_test_split":
-        trainDNN.trainWithsplit(DNN_model,n_frames=1, bs=32, num_epochs=1000)
+        trainDNN.trainWithsplit(DNN_model,n_frames=1, bs=16, num_epochs=200)
         
     elif training_mode == "cross_validation":
-       trainDNN.trainWithKfolds(DNN_model,kfolds=2,n_frames=1, bs=16, num_epochs=500)
+       trainDNN.trainWithKfolds(DNN_model,kfolds=3,n_frames=1, bs=32)

@@ -21,6 +21,7 @@ class classifier():
 
     def load_model(self):
         self.model = getModel(self.cfg.MODEL,self.cfg.tagI2W, n_frames=self.n_frames,pose2d_size =self.pose2d_size, pose3d=51)
+        print('CheckPoint:',self.cfg.CHEKPT)
         ckpt  = torch.load(self.cfg.CHEKPT, map_location=self.opt.device)
         self.model.load_state_dict(ckpt['model_state_dict'])
         self.model.to(self.opt.device)

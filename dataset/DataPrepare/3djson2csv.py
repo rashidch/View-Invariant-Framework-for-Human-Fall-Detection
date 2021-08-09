@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
-execResjson = "find -type f -iname 'cam8_3D_Original.json' "
+execResjson = "find -type f -iname 'multicam_full_3D_Original.json' "
 
 #alphaI2W = [ "nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
 #"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion

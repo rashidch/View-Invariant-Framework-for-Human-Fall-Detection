@@ -82,9 +82,9 @@ class detectFall():
         #recall_ = recall_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
         #f_score_ = f1_score(np.asarray(groundtruth), np.asarray(prediction_result), average=None)
 
-        print("Precision : {:0.2f}".format(np.round(precision, 2)))
-        print("Recall : {:0.2f}".format(np.round(recall, 2)))
-        print("F1_Score: {:0.2f}".format(np.round(f_score, 2)))
+        print("Precision : {:0.4f}".format(np.round(precision, 2)))
+        print("Recall : {:0.4f}".format(np.round(recall, 4)))
+        print("F1_Score: {:0.4f}".format(np.round(f_score, 4)))
         print("\n")
     
         #print("Precision per class : {}".format(np.round(precision_, 4)))

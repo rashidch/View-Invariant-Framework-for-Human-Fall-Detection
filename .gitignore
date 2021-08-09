@@ -131,6 +131,7 @@ dmypy.json
 .pyre/
 #ignore media files
 *.png
+*.gif
 *.jpg
 *.jpeg
 *.avi

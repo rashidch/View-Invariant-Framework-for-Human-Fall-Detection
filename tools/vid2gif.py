@@ -20,6 +20,6 @@ def convertVideoToGifFile(inputFile, outputFile=None):
     print("\r\nConversion done.")
 
 #Convert Input Files
-filepath = "/home/rasho/Falling-Person-Detection-based-On-AlphaPose/outputs/dnntiny/2.avi"
-outputpath = "/home/rasho/Falling-Person-Detection-based-On-AlphaPose/outputs/dnntiny/2.gif"
+filepath = "/home/rasho/Falling-Person-Detection-based-On-AlphaPose/outputs/LeAngleD/test_1_29.avi"
+outputpath = "/home/rasho/Falling-Person-Detection-based-On-AlphaPose/outputs/LeAngleD/test_1_29.gif"
 convertVideoToGifFile(filepath,outputpath)

@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 
-execResjson = "find -type f -iname 'multicam_full_h36m.json' "
+execResjson = "find -type f -iname 'MixFall_2D_Original.json' "
 
 #alphaI2W = [ "nose","LEye","REye","LEar","REar","LShoulder","RShoulder", "LElbow","RElbow",\
 #"LWrist", "RWrist","LHip","RHip", "LKnee","Rknee", "LAnkle","RAnkle"]# neck is addtion
@@ -16,6 +16,7 @@ execResjson = "find -type f -iname 'multicam_full_h36m.json' "
 h36mI2W = ["Hip", "RHip", "RKnee", "RFoot", "LHip", "LKnee", "LFoot", "Spine",\
 "Thorax","Nose", "Head", "LShoulder","LElbow", "LWrist", "RShoulder", "RElbow", "RWrist"]
 
+#index = [0,1,2,4,5,7,8,12,13,15,16]
 
 #alphaI2W = ["Nose", "Neck", "RShoulder", "RElbow", "RWrist", "LShoulder", "LElbow", "LWrist", "RHip",\
 #           "RKnee", "RAnkle", "LHip", "LKnee","LAnkle", "REye", "LEye", "REar","LEar"]

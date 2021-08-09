@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 from torch.utils.data import SubsetRandomSampler 
 from train.createDatasetModule import Read2dPoseData
+from train.Augment import uniform_sample, random_sample
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from sklearn.model_selection import train_test_split
@@ -15,13 +16,15 @@ from sklearn.model_selection import train_test_split
 #create 2d pose dataset
 class TwoDimensionaldataset(Dataset):
     
-    def __init__(self, n_frames=5):
+    def __init__(self, n_frames=5,num_skip_frame=None,random_choose=False, decouple_spatial=False, center_choose=False):
         
+        self.n_frames = n_frames
         #get data and label from create dataset Module
-        dataset, labels =  Read2dPoseData(n_frames)
-        print('Dataset',dataset.shape, 'labels',labels.shape)
+        dataset, labels =  Read2dPoseData(self.n_frames)
         self.X = dataset
         self.y = labels
+        
+
     # number of rows in the dataset
     def __len__(self):
         
@@ -30,37 +33,40 @@ class TwoDimensionaldataset(Dataset):
     # get a row at an index
     def __getitem__(self, idx):
         
-        data  = torch.tensor(self.X[idx], dtype=torch.float) 
-        label = torch.tensor(self.y[idx], dtype=torch.long)
+        data  = np.asarray(self.X[idx]) 
+        label = np.asarray(self.y[idx])
+        #data  = uniform_sample(data,150)
         
-        return [data,label]
+        return torch.tensor(data,dtype=torch.float),torch.tensor(label,dtype=torch.long)
     
     def reshape_features(self):
         self.X = self.X.reshape(-1, self.X.shape[1]*self.X.shape[2])
     
-    #prepare pytorch data loaders 
-    @staticmethod
-    def get2dData(n_frames=1, bs=32, n_test = 0.35, reshape=True):
+#prepare pytorch data loaders 
     
-        # load pose dataset
-        dataset = TwoDimensionaldataset(n_frames)
-        targets = dataset.y
-        # reshape from N,10,34 to N,Num_Features
-        if reshape:
-            dataset.reshape_features()
-        #stratified train test split
-        train_idx, valid_idx = train_test_split(np.arange(len(targets)), test_size=n_test, stratify=targets)
-        
-        train_sampler = SubsetRandomSampler(train_idx)
-        valid_sampler = SubsetRandomSampler(valid_idx)
-        
-        train_dl  = DataLoader(dataset, batch_size=bs, num_workers=4, sampler=train_sampler, drop_last=True)
-        valid_dl  = DataLoader(dataset, batch_size=bs, sampler=valid_sampler, drop_last=True)
-        
-        return {'train':train_dl, 'valid':valid_dl}, {'train':len(train_sampler), 'valid':len(valid_sampler)}
+def get2dData(n_frames=1, bs=32, n_test = 0.35, reshape=False):
+
+    # load pose dataset
+    dataset = TwoDimensionaldataset(n_frames)
+    targets = dataset.y
+    # reshape from N,10,34 to N,Num_Features
+    if reshape:
+        dataset.reshape_features()
+    #stratified train test split
+    train_idx, valid_idx = train_test_split(np.arange(len(targets)), test_size=n_test, stratify=targets)
+    
+    train_sampler = SubsetRandomSampler(train_idx)
+    valid_sampler = SubsetRandomSampler(valid_idx)
+    
+    train_dl  = DataLoader(dataset, batch_size=bs, num_workers=10, sampler=train_sampler, drop_last=True)
+    valid_dl  = DataLoader(dataset, batch_size=bs, sampler=valid_sampler, drop_last=True)
+    
+    return {'train':train_dl, 'valid':valid_dl}, {'train':len(train_sampler), 'valid':len(valid_sampler)}
 
 #create single pose 2d dataset for dnn model
 class SinglePose3dDataset(Dataset):
+
+    
     
     
     def __init__(self, n_frames=5):
@@ -208,3 +214,13 @@ class SinglePose3dDataset(Dataset):
         valid_dl  = DataLoader(dataset, batch_size=bs, sampler=valid_sampler, drop_last=True)
         
         return {'train':train_dl, 'valid':valid_dl}, {'train':len(train_sampler), 'valid':len(valid_sampler)}
+
+if __name__ =='__main__':
+
+   #dataloader, size = get2dData(n_frames=1, bs=32, n_test = 0.35, reshape=False)
+   #rint(dataloader['train'],dataloader['valid'])
+   dataset = TwoDimensionaldataset()
+   data, label = dataset[1]
+   print(data.shape, label.size())
+   
+

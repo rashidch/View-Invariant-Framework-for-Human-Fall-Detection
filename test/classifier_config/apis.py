@@ -36,6 +36,10 @@ def getFallModelcfg(args):
     elif args.classmodel.lower() =='fallnet':
         from test.classifier_config.fallModelcfg import cfg5 
         return cfg5
+    elif args.classmodel.lower()=='dstanet':
+        from test.classifier_config.fallModelcfg import cfg6 
+        return cfg6
+
     else:
         print('Model not implemented')
         raise NotImplementedError

@@ -28,7 +28,7 @@ def save_to_json_original2D(result_2D, input_path, output_path):
 if __name__== '__main__':
     #path='dataset/SkeletonData/2dh3.6m/taoyuan_angle1_2D_Original.json'
     #path='source3d/json_test/taoyuan_angle2.json'
-    path = 'dataset/SkeletonData/multicam_full.json'
+    path = 'dataset/SkeletonData/multicamTest.json'
 
     f = open(path) 
     data = json.load(f)
@@ -39,7 +39,7 @@ if __name__== '__main__':
     converted = map_alpha_to_human_classification_json(path)
     directory = os.path.dirname(path)
     
-    output_path = os.path.join(directory,'multicam_full_h36m.json')
+    output_path = os.path.join(directory,'multicamTest_h36m.json')
     mapping_result=map_alpha_to_human_classification_json(path)
     save_to_json_original2D(mapping_result, path, output_path)
     
