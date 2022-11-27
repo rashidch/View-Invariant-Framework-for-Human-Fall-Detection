@@ -4,7 +4,9 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 <p align='center'>
    <img src="/outputs/1Pv8rCTwH9rqhPYKDbQ1U-NvEWYVlqvUw">  
  </p>
- 
+
+## A Skeleton-based View-Invariant Framework for Human Fall Detection in an Elevator accepted at IEEE International Conference on Industrial Technology (ICIT), 2022 
+
 ## Abstract:
 This paper considers the emergency behavior detection problem inside an elevator. As elevators come in 
 different shapes and emergency behavior data are scarce, we propose a skeleton-based view-invariant framework to tackle 
