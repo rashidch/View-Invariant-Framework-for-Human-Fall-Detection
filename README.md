@@ -1,10 +1,6 @@
 # Falling-Person-Detection-based-On-AlphaPose
 A PyTorch implementation for Falling person detection inside elevator based on AlphaPose Estimation (Human body keypoints detection)
 
-<p align='center'>
-   <img src="/outputs/1Pv8rCTwH9rqhPYKDbQ1U-NvEWYVlqvUw">  
- </p>
-
 ## A Skeleton-based View-Invariant Framework for Human Fall Detection in an Elevator accepted at IEEE International Conference on Industrial Technology (ICIT), 2022 
 
 ## Abstract:
