@@ -4,6 +4,30 @@ A PyTorch implementation for Falling person detection inside elevator based on A
 <p align='center'>
    <img src="/outputs/1Pv8rCTwH9rqhPYKDbQ1U-NvEWYVlqvUw">  
  </p>
+ ## Abstract:
+This paper considers the emergency behavior 
+detection problem inside an elevator. As elevators come in 
+different shapes and emergency behavior data are scarce, we 
+propose a skeleton-based view-invariant framework to tackle 
+the camera view angle variation issue and the data collection 
+issue. The proposed emergency fall detection model only needs 
+to be trained for a target camera, which is deployed in an 
+elevator at a manufacture’s lab, from which a large amount of 
+training data can be collected. The deployment of a source 
+camera, which is in a customer-side elevator, hence can be 
+customized and almost no training effort is needed. Our 
+framework works in four stages. First, a 2D RGB input image is 
+taken from the source camera and a 2D human skeleton is 
+obtained by 2D pose estimation (AlphaPose). Second, the 2D 
+skeleton is converted to a 3D human skeleton by 3D pose 
+estimation (3D pose baseline). Third, a pre-trained rotationtranslation (RT) transform (Procrustes analysis (PA)) aligns the 
+3D pose representations to the target camera view. Finally, a 
+dual 3D pose baseline deep neural networks (D3PBDNN) model 
+for human fall detection is proposed to perform the recognition 
+task. We gather a human fall detection dataset inside different 
+elevators from various view angles and validate our proposal. 
+Experimental results successfully attain almost equivalent 
+accuracy to that of a source camera-trained model. 
 	
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
